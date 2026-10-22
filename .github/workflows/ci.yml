@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    name: Formatting, package tests, app build and UI tests
+    runs-on: macos-26
+    env:
+      # Pinned rather than the image default, so that a runner-image update cannot change the toolchain under a
+      # pull request. Bump it together with the simulator OS below.
+      DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check formatting
+        run: scripts/swift-format.sh lint
+
+      - name: Test DrevoKit
+        if: "!cancelled()"
+        run: swift test --package-path DrevoKit -Xswiftc -warnings-as-errors
+
+      - name: Build the app and run the UI tests on iPhone and iPad
+        if: "!cancelled()"
+        run: >-
+          xcodebuild test
+          -project Drevo.xcodeproj
+          -scheme Drevo
+          -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.5'
+          -destination 'platform=iOS Simulator,name=iPad Pro 11-inch (M5),OS=26.5'
+          -derivedDataPath build/DerivedData
+          -resultBundlePath build/Tests.xcresult
+
+      - name: Upload the test results
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: build/Tests.xcresult
+          if-no-files-found: ignore
+
+  secret-scan:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install gitleaks
+        run: |
+          set -euo pipefail
+          archive="$RUNNER_TEMP/gitleaks.tar.gz"
+          curl -sSfL -o "$archive" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "$GITLEAKS_SHA256  $archive" | sha256sum -c -
+          tar -xzf "$archive" -C "$RUNNER_TEMP" gitleaks
+
+      # The whole history, unlike drevo-android: this repository has no known leak to step around.
+      - name: Scan the history
+        run: '"$RUNNER_TEMP/gitleaks" git . --redact --no-banner -v'

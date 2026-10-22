@@ -1,0 +1,32 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+
+  // The shared preset sets the schedule, grouping, release age and automerge policy; only what departs from it is
+  // configured below, each with its reason. DrevoKit has no package dependencies (decision 6), so what Renovate
+  // updates here is the workflow's actions and the gitleaks pin.
+  extends: ['github>pravbeseda/renovate-config'],
+
+  packageRules: [
+    {
+      // The secret scan verifies the downloaded binary against GITLEAKS_SHA256, which Renovate cannot compute, so
+      // this pull request stays red until the hash is updated by hand. That is the gate working.
+      matchDepNames: ['gitleaks/gitleaks'],
+      groupName: 'gitleaks',
+      prBodyNotes: [
+        '**Update `GITLEAKS_SHA256` in `.github/workflows/ci.yml` by hand** to the SHA-256 of the new `linux_x64` release asset, taken from the release\'s checksums file. The secret scan fails until it matches.',
+      ],
+    },
+  ],
+
+  customManagers: [
+    {
+      // The version lives in an env value no package manager reads.
+      customType: 'regex',
+      managerFilePatterns: ['/^\\.github/workflows/.+\\.ya?ml$/'],
+      matchStrings: ['GITLEAKS_VERSION:\\s*(?<currentValue>\\S+)'],
+      depNameTemplate: 'gitleaks/gitleaks',
+      datasourceTemplate: 'github-releases',
+      extractVersionTemplate: '^v(?<version>.*)$',
+    },
+  ],
+}

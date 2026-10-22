@@ -1,0 +1,16 @@
+# Xcode and SwiftPM build output
+build/
+DerivedData/
+.build/
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+
+# The databases fetched by scripts/fetch-db.sh: hundreds of megabytes, pinned by db.lock
+Drevo/Resources/Database/
+
+# Claude Code's per-machine state; the shared .claude/settings.json stays tracked
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+.DS_Store
