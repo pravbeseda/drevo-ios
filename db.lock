@@ -1,0 +1,7 @@
+# The drevo-db release the app bundles (https://github.com/pravbeseda/drevo-db/releases). DB_RELEASE is
+# db-<main>-<patch> and holds the patch; MAIN_RELEASE is the release holding main.<main>, the same tag when that
+# release rebuilt main. The hashes come from the release's SHA256SUMS. scripts/fetch-db.sh reads this file.
+DB_RELEASE=db-254-258
+MAIN_RELEASE=db-254-258
+MAIN_SHA256=01a6cae71a31689acf7a50206efb6d52d6b616d98bcec6ce9f20b82da7c42b64
+PATCH_SHA256=b17ffdeb28a4f96de446352786dd537f9307af934b8b6a6cb6c99e36dc95d7d5

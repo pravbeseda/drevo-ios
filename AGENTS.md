@@ -24,12 +24,22 @@ written into the repository is English.
 The layout follows the horizontal size class, never the device idiom: an unfolded iPhone Duo, an iPad in Split View and
 a rotated phone are the same event to the app.
 
+## Databases
+
+The app bundles the drevo-db release that `db.lock` pins: `main` and `patch` under the constant names `main.sqlite` and
+`patch.sqlite` in `Drevo/Resources/Database/`, git-ignored. **Run `scripts/fetch-db.sh` once after a clone and after
+every `db.lock` change**; it downloads only what is missing or stale and checks each file against its SHA-256 in
+`db.lock`. The app target's first build phase runs it with `--check`, which never downloads: a missing or stale file
+fails the build with that instruction. A new database is a `db.lock` change — the release tag, the release holding
+`main`, and both hashes from that release's `SHA256SUMS` — followed by a fetch.
+
 ## Build & test
 
 ```bash
 swift test --package-path DrevoKit -Xswiftc -warnings-as-errors   # the core, on the host, in seconds
 scripts/swift-format.sh lint                                      # formatting, as CI and the pre-commit hook check it
 scripts/swift-format.sh format                                    # format every tracked Swift file in place
+scripts/tests/fetch-db-test.sh                                    # scripts/fetch-db.sh against a fake gh
 ```
 
 The app's build and UI tests run through `xcodebuild test -scheme Drevo`; the exact command and simulator destinations
@@ -67,7 +77,8 @@ Point each checkout at it once: `git config core.hooksPath .githooks`. `gitleaks
 
 `.github/workflows/ci.yml` runs on pull requests against `main`, pushes to `main` and `workflow_dispatch`:
 
-- `checks` — formatting, `swift test`, and `xcodebuild test` on an iPhone and an iPad simulator, on macOS.
+- `checks` — formatting, `swift test`, the `fetch-db.sh` test, the databases (cached by `db.lock`'s hash) and
+  `xcodebuild test` on an iPhone and an iPad simulator, on macOS.
 - `secret-scan` — `gitleaks` over the whole history.
 
 Dependency updates arrive through Renovate (`renovate.json5`, extending

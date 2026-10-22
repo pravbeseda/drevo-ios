@@ -82,6 +82,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D1E0000000000000000000F3 /* Build configuration list for PBXNativeTarget "Drevo" */;
 			buildPhases = (
+				D1E0000000000000000000D6 /* Verify the databases */,
 				D1E0000000000000000000D0 /* Sources */,
 				D1E0000000000000000000D1 /* Frameworks */,
 				D1E0000000000000000000D2 /* Resources */,
@@ -180,6 +181,32 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		D1E0000000000000000000D6 /* Verify the databases */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/scripts/fetch-db.sh",
+				"$(SRCROOT)/db.lock",
+				"$(SRCROOT)/Drevo/Resources/Database/main.sqlite",
+				"$(SRCROOT)/Drevo/Resources/Database/patch.sqlite",
+			);
+			name = "Verify the databases";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/databases-verified",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$SRCROOT/scripts/fetch-db.sh\" --check && touch \"$DERIVED_FILE_DIR/databases-verified\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D1E0000000000000000000D0 /* Sources */ = {
