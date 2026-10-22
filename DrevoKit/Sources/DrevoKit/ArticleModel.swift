@@ -207,8 +207,6 @@ public final class ArticleModel {
     }
 
     private func fail(_ failure: Failure) {
-        // A load still in flight must not bring its page back over the failure.
-        loads += 1
         self.failure = failure
         page = nil
         contents = []
