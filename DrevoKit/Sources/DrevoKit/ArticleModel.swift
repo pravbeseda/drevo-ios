@@ -31,6 +31,9 @@ public final class ArticleModel {
     /// back, so it changes only when the user asks for an article, never by itself.
     public private(set) var selection: Int?
     public private(set) var page: ArticlePage?
+    /// Changes with every page opened, including reopening the same one; the web view loads `page` when it
+    /// changes and reports scrolls with the id it loaded.
+    public private(set) var pageID = 0
     public private(set) var contents: [TocEntry] = []
     public private(set) var isBookmarked = false
     public private(set) var bookmarkFailed = false
@@ -108,10 +111,10 @@ public final class ArticleModel {
         await show()
     }
 
-    /// A page reported how far it is scrolled, as a fraction of its height. A page that is no longer the one shown
-    /// can still report while the next one loads, so only the current page's reports count.
-    public func recordScroll(_ position: Double, on page: ArticlePage) {
-        guard page == self.page else { return }
+    /// A page reported how far it is scrolled, as a fraction of its height. The previous page's web view can still
+    /// report while the next page loads or after, so only reports carrying the current `pageID` count.
+    public func recordScroll(_ position: Double, onPage id: Int) {
+        guard id == pageID, page != nil else { return }
         history.recordScroll(position)
     }
 
@@ -163,17 +166,19 @@ public final class ArticleModel {
 
     private func show() async {
         guard let target = history.current else { return }
+        pageID += 1
+        let id = pageID
         let article: Article?
         var bookmarked = false
         do {
             article = try await library.article(target.articleID)
             if let article { bookmarked = try await library.isBookmarked(id: article.id, title: article.title) }
         } catch {
-            if isStillCurrent(target) { fail(error is CorruptArticle ? .corrupt : .unreadable) }
+            if id == pageID { fail(error is CorruptArticle ? .corrupt : .unreadable) }
             return
         }
         // Another page may have been opened while this one loaded.
-        guard isStillCurrent(target) else { return }
+        guard id == pageID else { return }
         guard let article else {
             fail(.notFound)
             return
@@ -185,10 +190,6 @@ public final class ArticleModel {
         bookmarkFailed = false
         shown = article
         failure = nil
-    }
-
-    private func isStillCurrent(_ page: ArticleHistory.Page) -> Bool {
-        history.current?.articleID == page.articleID && history.current?.anchor == page.anchor
     }
 
     private func fail(_ failure: Failure) {

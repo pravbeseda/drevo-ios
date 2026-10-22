@@ -65,7 +65,7 @@ struct ArticleModelTests {
 
     @Test func backAndForwardRestoreTheScroll() async {
         await model.select(101)
-        model.recordScroll(0.5, on: model.page!)
+        model.recordScroll(0.5, onPage: model.pageID)
         await model.select(102)
 
         await model.goBack()
@@ -131,14 +131,39 @@ struct ArticleModelTests {
 
     @Test func aScrollFromAPageNoLongerShownIsIgnored() async {
         await model.select(101)
-        let leaving = model.page!
+        let leaving = model.pageID
         await model.select(102)
         // The old page's web view may report once more after the next one was opened.
-        model.recordScroll(0.9, on: leaving)
+        model.recordScroll(0.9, onPage: leaving)
 
         await model.goBack()
         await model.goForward()
         #expect(model.page?.html.contains("window.scrollTo") == false)
+    }
+
+    @Test func aScrollFromAnEarlierShowingOfTheSamePageIsIgnored() async {
+        await model.select(101)
+        let first = model.pageID
+        await model.select(102)
+        await model.select(101)
+        model.recordScroll(0.9, onPage: first)
+
+        await model.goBack()
+        await model.goForward()
+        #expect(model.page?.html.contains("window.scrollTo") == false)
+    }
+
+    @Test func everyPageShownGetsItsOwnID() async {
+        var ids: [Int] = []
+        await model.select(101)
+        ids.append(model.pageID)
+        await model.select(102)
+        ids.append(model.pageID)
+        await model.goBack()
+        ids.append(model.pageID)
+        await model.goForward()
+        ids.append(model.pageID)
+        #expect(Set(ids).count == ids.count)
     }
 
     @Test func twoQuickBookmarkTapsAddAndRemove() async throws {
