@@ -5,10 +5,10 @@ import Testing
 
 struct ArticleHtmlBuilderTests {
     private let builder: ArticleHtmlBuilder = {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "Europe/Moscow")!
-        let october5 = calendar.date(from: DateComponents(year: 2026, month: 10, day: 5, hour: 12))!
-        return ArticleHtmlBuilder(today: october5, calendar: calendar)
+        let moscow = TimeZone(identifier: "Europe/Moscow")!
+        let october5 = Calendar.gregorian(in: moscow).date(
+            from: DateComponents(year: 2026, month: 10, day: 5, hour: 12))!
+        return ArticleHtmlBuilder(today: october5, timeZone: moscow)
     }()
 
     private func build(title: String = "ТИТУЛ", body: String = "<p>text</p>", anchor: String? = nil, scroll: Double = 0)
@@ -86,6 +86,12 @@ struct ArticleHtmlBuilderTests {
     @Test func calendarMarksToday() {
         let page = build(title: "КАЛЕНДАРЬ", body: #"<td id="1004" class="day"><td id="1005" class="day">"#)
         #expect(page.html.contains(#"<td id="1004" class="day"><td id="1005" class="day today">"#))
+    }
+
+    // 261 of the 365 days in db-254-258's calendar carry more classes than `day`.
+    @Test func calendarMarksTodayWhateverItsOtherClasses() {
+        let page = build(title: "КАЛЕНДАРЬ", body: #"<td id="1005" class="day weekend post">"#)
+        #expect(page.html.contains(#"<td id="1005" class="day today weekend post">"#))
     }
 
     @Test func onlyTheCalendarMarksToday() {

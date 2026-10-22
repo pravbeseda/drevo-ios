@@ -32,9 +32,12 @@ public struct BookmarksStore {
         let version = try database.userVersion()
         if version == 0 {
             try database.execute(
+                // One transaction, so the file never holds the table at version 0, which would fail every reopen.
                 """
+                BEGIN;
                 CREATE TABLE tblSlovnik(_id INTEGER PRIMARY KEY, title TEXT UNIQUE);
                 PRAGMA user_version = \(BookmarksSchema.version);
+                COMMIT;
                 """)
         } else if version > BookmarksSchema.version {
             throw UnsupportedBookmarks(userVersion: version)

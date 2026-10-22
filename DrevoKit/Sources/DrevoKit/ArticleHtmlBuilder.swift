@@ -16,8 +16,9 @@ public struct ArticleHtmlBuilder {
 
     private let today: DateComponents
 
-    public init(today: Date, calendar: Calendar) {
-        self.today = calendar.dateComponents([.month, .day], from: today)
+    /// `today` is the day the calendar page marks, taken in `timeZone`.
+    public init(today: Date, timeZone: TimeZone) {
+        self.today = Calendar.gregorian(in: timeZone).dateComponents([.month, .day], from: today)
     }
 
     /// `scroll` is a fraction of the document height to restore; a non-zero one wins over `anchor`.
@@ -31,7 +32,7 @@ public struct ArticleHtmlBuilder {
             }
             let day = String(format: "%02d%02d", today.month!, today.day!)
             text = text.replacingOccurrences(
-                of: #"td id="\#(day)" class="day""#, with: #"td id="\#(day)" class="day today""#)
+                of: #"td id="\#(day)" class="day"#, with: #"td id="\#(day)" class="day today"#)
         }
 
         let opensAtAnchor = scroll == 0 && !(anchor ?? "").isEmpty
