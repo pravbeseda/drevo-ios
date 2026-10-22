@@ -33,7 +33,7 @@ jobs:
 
       - name: Test DrevoKit
         if: "!cancelled()"
-        run: swift test --package-path DrevoKit
+        run: swift test --package-path DrevoKit -Xswiftc -warnings-as-errors
 
       - name: Build the app and run the UI tests on iPhone and iPad
         if: "!cancelled()"

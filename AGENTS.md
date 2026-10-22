@@ -27,9 +27,9 @@ a rotated phone are the same event to the app.
 ## Build & test
 
 ```bash
-swift test --package-path DrevoKit      # the core, on the host, in seconds
-scripts/swift-format.sh lint            # formatting, as CI and the pre-commit hook check it
-scripts/swift-format.sh format          # format every tracked Swift file in place
+swift test --package-path DrevoKit -Xswiftc -warnings-as-errors   # the core, on the host, in seconds
+scripts/swift-format.sh lint                                      # formatting, as CI and the pre-commit hook check it
+scripts/swift-format.sh format                                    # format every tracked Swift file in place
 ```
 
 The app's build and UI tests run through `xcodebuild test -scheme Drevo`; the exact command and simulator destinations
@@ -52,9 +52,9 @@ singletons; a database or a model is created once and passed in.
 
 ## Never weaken a check
 
-Warnings are errors in both the Xcode project (`SWIFT_TREAT_WARNINGS_AS_ERRORS`, `GCC_TREAT_WARNINGS_AS_ERRORS`) and the
-package (`.treatAllWarnings(as: .error)`), Swift 6 language mode makes concurrency checking complete, and swift-format
-runs with `--strict`. Fix a finding; never silence it — no new `@preconcurrency`, `nonisolated(unsafe)`,
+Warnings are errors in the Xcode project (`SWIFT_TREAT_WARNINGS_AS_ERRORS`, `GCC_TREAT_WARNINGS_AS_ERRORS`) and in the
+package through the `swift test` command above (`Package.swift` says why it is not a package setting). Swift 6 language
+mode makes concurrency checking complete, and swift-format runs with `--strict`. Fix a finding; never silence it — no new `@preconcurrency`, `nonisolated(unsafe)`,
 `@unchecked Sendable`, skipped or disabled test, or relaxed setting without explicit permission.
 
 ## Commits
