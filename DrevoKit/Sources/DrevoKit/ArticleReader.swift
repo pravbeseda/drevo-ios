@@ -13,6 +13,13 @@ struct ArticleReader {
     let patch: SQLiteDatabase
     let main: SQLiteDatabase
 
+    /// The article with exactly this title, such as a calendar day's (`DayTitle`).
+    func id(forTitle title: String) throws -> Int? {
+        let statement = try patch.prepare("SELECT _id FROM tblSlovnik WHERE title = ?")
+        try statement.bind(title, at: 1)
+        return try statement.step() ? statement.int(at: 0) : nil
+    }
+
     /// `nil` when the index has no article with this id.
     func read(id: Int) throws -> ArticleRows? {
         let title = try patch.prepare("SELECT title FROM tblSlovnik WHERE _id = ?")

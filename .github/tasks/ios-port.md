@@ -166,8 +166,16 @@ One pull request per step, each green before the next.
       never produces; a TOC entry is nested only when its anchor starts with `_`, as format.md says, where
       drevo-android strips every underscore. `BundledDatabaseTests`, run by CI on the fetched databases, is the
       release gate of format.md: the pinned files' `user_version` and all 37 853 articles of `db-254-258`.
-- [ ] 4. DrevoKit rest: `WordListQuery` / `SlovnikQueryBuilder`, `SearchHighlighter`, `ArticleHtmlBuilder`, `HistoryList`,
-      `DayTitle`, `BookmarksStore` / `BookmarksSchema`, the models.
+- [x] 4a. DrevoKit rest (pravbeseda/drevo-ios#4): `WordListQuery` / `SlovnikQueryBuilder` / `WordListReader`, `SearchHighlighter`,
+      `ArticleHtmlBuilder`, `ArticleLink`, `ArticleHistory` (for `HistoryList`), `DayTitle`, `BookmarksStore` /
+      `BookmarksSchema`. Deviations from drevo-android: the search is a bound parameter with `%`, `_` and `\` taken
+      literally; the main page leads the list by id rather than by its title's leading space; the page carries a
+      viewport meta tag and both stylesheets behind `prefers-color-scheme` media queries, so the theme follows the
+      app's appearance without a rebuild, and drops `singlePane` and the Bible translation script (a later item);
+      `ArticleHistory` keeps typed pages, not `id#scroll` strings; `SearchHighlighter` returns ranges for an
+      `AttributedString`, not `<b>` markup. Article bodies link by bare id (`href="16473"`, ~110 000 links in the
+      corpus), `#anchor` within the page, or `http(s)`; titles are looked up only for the calendar days.
+- [ ] 4b. The `@Observable` models the views bind to (decision 10).
 - [ ] 5. App MVP, items 1–6 below.
 
 ### DrevoKit (test-first, `swift test`)
@@ -182,7 +190,7 @@ One pull request per step, each green before the next.
 | `WordListQuery`, `SlovnikQueryBuilder` | same names | topics `0` / `99` / `1`–`11`, search type, portion as `LIMIT` |
 | `SearchHighlighter` | same | |
 | `ArticleHtmlBuilder` | same | emits `webkit.messageHandlers.drevo.postMessage(...)` instead of `Android.onLoad()` / `Android.onScroll()` |
-| `HistoryList` | same | back / forward stacks |
+| `ArticleHistory` | `HistoryList` | back / forward stacks with each page's scroll |
 | `DayTitle` | `MyUtils.getDayTitle` | the −13 / −12 day shift |
 | `BookmarksStore`, `BookmarksSchema` | `BookmarksDbHelper`, `BookmarksSchema` | same `tblSlovnik(_id, title)` table and `user_version`, so a bookmarks file exported on Android imports on iOS and back |
 | `FormatVersion` | phase 4 check | accepts `user_version` 0 and 1 |
@@ -196,7 +204,7 @@ MVP:
 2. Word list with `.searchable`; its title is the filter menu (all articles as «Древо», persons, organisations, places,
    terms, church, bible, books, saints, holidays, church-slavonic, documents, bookmarks).
 3. Article in `WKWebView` loading the HTML with the bundled `style.css`, `styleblack.css`, `common.js`, `jquery.min.js`
-   (copied from `drevo/src/main/assets/`); in-corpus links resolved to ids by title; TOC sheet; back / forward;
+   (copied from `drevo/src/main/assets/`); in-corpus links (bare ids) classified by `ArticleLink`; TOC sheet; back / forward;
    scroll position restored from the model (decision 9).
 4. Bookmarks: add, remove, list.
 5. "⋯" menu entries: main page, calendar (with today highlighted), today, tomorrow, chronology, settings, about the site,
