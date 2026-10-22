@@ -26,6 +26,7 @@ in drevo-db and drevo-android; this plan moved here from drevo-android's `.githu
 | 14 | `pravbeseda/drevo-ios` is a public GitHub repository | Public repositories run macOS jobs free, so CI can test iPhone, iPad and iPhone Duo; the client holds no secret. drevo-db became public too, so CI downloads its releases with the workflow's own token and no PAT exists |
 | 15 | Bundle identifier `ru.drevoinfo`, display name «Древо» | The same identifier as the Android package; it is fixed only when the App Store Connect record is created, so a clash found then costs nothing |
 | 16 | Themes: system (default) / light / dark; dark is `styleblack.css` over the system dark appearance | Android's dark and black differ only in the chrome's grey, and iOS dark mode is already black; a custom grey palette would not reach system menus and sheets |
+| 17 | The `@Observable` models live in the `DrevoKit` target itself; a `Library` actor owns the databases and does their work off the main actor | The models are the core's only consumer, so its types stay internal and the public API is what the views need; a second consumer (a widget) is the moment to split targets |
 
 ## Current state
 
@@ -175,7 +176,12 @@ One pull request per step, each green before the next.
       `ArticleHistory` keeps typed pages, not `id#scroll` strings; `SearchHighlighter` returns ranges for an
       `AttributedString`, not `<b>` markup. Article bodies link by bare id (`href="16473"`, ~110 000 links in the
       corpus), `#anchor` within the page, or `http(s)`; titles are looked up only for the calendar days.
-- [ ] 4b. The `@Observable` models the views bind to (decision 10).
+- [ ] 4b. The `@Observable` models the views bind to (decisions 10, 17): `Library` (an actor over `main`, `patch` and
+      the bookmarks), `WordListModel` (topic, search, rows; the view reloads it with `.task(id: query)`, and a stale
+      result is dropped), `ArticleModel` (page, contents, history, bookmark, special pages, today / tomorrow, link
+      decisions for the web view, the word list selection that drives the split view) and `SettingsModel` (theme,
+      font scale, list settings, one JSON value in `UserDefaults`). drevo-android checks no format on the device, and
+      neither does `Library`: `BundledDatabaseTests` is the gate.
 - [ ] 5. App MVP, items 1–6 below.
 
 ### DrevoKit (test-first, `swift test`)

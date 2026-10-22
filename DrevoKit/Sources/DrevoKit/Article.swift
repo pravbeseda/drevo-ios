@@ -1,15 +1,15 @@
 import Foundation
 
 /// One entry of an article's table of contents.
-struct TocEntry: Equatable {
-    let title: String
-    let anchor: String
+public struct TocEntry: Equatable, Sendable {
+    public let title: String
+    public let anchor: String
     /// Written `#_anchor|title`: the entry sits under the one before it.
-    let isNested: Bool
+    public let isNested: Bool
 }
 
 /// An article's text split at `<drevo>` into its table of contents and its HTML body (format.md, "Texts").
-struct Article: Equatable {
+struct Article: Equatable, Sendable {
     let id: Int
     let title: String
     /// In article order; titles repeat within some articles, so it is a list, not a map.
