@@ -166,6 +166,26 @@ struct ArticleModelTests {
         #expect(Set(ids).count == ids.count)
     }
 
+    @Test func thePageIDChangesWithThePage() async {
+        await model.select(101)
+        let first = model.pageID
+        await model.select(102)
+        #expect(model.pageID != first)
+        #expect(model.page?.title == "СЕРГИЙ РАДОНЕЖСКИЙ")
+        await model.select(999)
+        #expect(model.page == nil)
+    }
+
+    @Test func manyQuickBookmarkTapsEndWhereTheFileDoes() async throws {
+        await model.select(102)
+        await withTaskGroup(of: Void.self) { group in
+            for _ in 0..<5 { group.addTask { await model.toggleBookmark() } }
+        }
+        let stored = try await library.isBookmarked(id: 102, title: "СЕРГИЙ РАДОНЕЖСКИЙ")
+        #expect(stored)
+        #expect(model.isBookmarked == stored)
+    }
+
     @Test func twoQuickBookmarkTapsAddAndRemove() async throws {
         await model.select(102)
         async let first: Void = model.toggleBookmark()

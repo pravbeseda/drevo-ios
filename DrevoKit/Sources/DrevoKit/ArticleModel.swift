@@ -31,8 +31,8 @@ public final class ArticleModel {
     /// back, so it changes only when the user asks for an article, never by itself.
     public private(set) var selection: Int?
     public private(set) var page: ArticlePage?
-    /// Changes with every page opened, including reopening the same one; the web view loads `page` when it
-    /// changes and reports scrolls with the id it loaded.
+    /// Identifies `page` and changes together with it, reopening the same article included; the web view loads
+    /// `page` when it changes and reports scrolls with the id it loaded.
     public private(set) var pageID = 0
     public private(set) var contents: [TocEntry] = []
     public private(set) var isBookmarked = false
@@ -48,7 +48,9 @@ public final class ArticleModel {
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let timeZone: TimeZone
     @ObservationIgnored private var shown: Article?
-    @ObservationIgnored private var bookmarkRequests = 0
+    /// Counts the loads started; ahead of `pageID` while one is in flight.
+    @ObservationIgnored private var loads = 0
+    @ObservationIgnored private var bookmarkTask: Task<Void, Never>?
 
     public init(library: Library, baseURL: URL, now: @escaping () -> Date = Date.init, timeZone: TimeZone = .current) {
         self.library = library
@@ -112,9 +114,10 @@ public final class ArticleModel {
     }
 
     /// A page reported how far it is scrolled, as a fraction of its height. The previous page's web view can still
-    /// report while the next page loads or after, so only reports carrying the current `pageID` count.
+    /// report while the next page loads or after, so a report counts only when it carries the current `pageID` and
+    /// no other page is loading.
     public func recordScroll(_ position: Double, onPage id: Int) {
-        guard id == pageID, page != nil else { return }
+        guard id == pageID, id == loads, page != nil else { return }
         history.recordScroll(position)
     }
 
@@ -125,25 +128,34 @@ public final class ArticleModel {
         await show()
     }
 
+    /// Taps are written one after another, in the order they came, so the model always ends where the file does.
     public func toggleBookmark() async {
-        guard let article = shown else { return }
-        bookmarkRequests += 1
-        let request = bookmarkRequests
-        do {
-            let isOn = try await library.toggleBookmark(id: article.id, title: article.title)
-            onBookmarksChanged?()
-            // A later tap, or another page, may have come in while this one was written; the latest one decides.
-            guard request == bookmarkRequests, article == shown else { return }
-            isBookmarked = isOn
-            bookmarkFailed = false
-        } catch {
-            if request == bookmarkRequests, article == shown { bookmarkFailed = true }
+        let previous = bookmarkTask
+        let task = Task {
+            await previous?.value
+            await writeBookmarkToggle()
         }
+        bookmarkTask = task
+        await task.value
     }
 
     /// The view has shown the bookmark failure.
     public func dismissBookmarkFailure() {
         bookmarkFailed = false
+    }
+
+    private func writeBookmarkToggle() async {
+        guard let article = shown else { return }
+        do {
+            let isOn = try await library.toggleBookmark(id: article.id, title: article.title)
+            onBookmarksChanged?()
+            // Another page may have been opened while this was written.
+            guard article == shown else { return }
+            isBookmarked = isOn
+            bookmarkFailed = false
+        } catch {
+            if article == shown { bookmarkFailed = true }
+        }
     }
 
     private func openStep(_ id: Int, anchor: String?) async {
@@ -166,25 +178,26 @@ public final class ArticleModel {
 
     private func show() async {
         guard let target = history.current else { return }
-        pageID += 1
-        let id = pageID
+        loads += 1
+        let load = loads
         let article: Article?
         var bookmarked = false
         do {
             article = try await library.article(target.articleID)
             if let article { bookmarked = try await library.isBookmarked(id: article.id, title: article.title) }
         } catch {
-            if id == pageID { fail(error is CorruptArticle ? .corrupt : .unreadable) }
+            if load == loads { fail(error is CorruptArticle ? .corrupt : .unreadable) }
             return
         }
         // Another page may have been opened while this one loaded.
-        guard id == pageID else { return }
+        guard load == loads else { return }
         guard let article else {
             fail(.notFound)
             return
         }
         let builder = ArticleHtmlBuilder(today: now(), timeZone: timeZone)
         page = builder.build(title: article.title, body: article.body, anchor: target.anchor, scroll: target.scroll)
+        pageID = load
         contents = article.contents
         isBookmarked = bookmarked
         bookmarkFailed = false
