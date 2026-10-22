@@ -130,10 +130,12 @@ public final class ArticleModel {
 
     /// Taps are written one after another, in the order they came, so the model always ends where the file does.
     public func toggleBookmark() async {
+        // The tap belongs to the article on screen now, not to whatever is shown when its turn comes.
+        guard let article = shown else { return }
         let previous = bookmarkTask
         let task = Task {
             await previous?.value
-            await writeBookmarkToggle()
+            await writeBookmarkToggle(of: article)
         }
         bookmarkTask = task
         await task.value
@@ -144,8 +146,7 @@ public final class ArticleModel {
         bookmarkFailed = false
     }
 
-    private func writeBookmarkToggle() async {
-        guard let article = shown else { return }
+    private func writeBookmarkToggle(of article: Article) async {
         do {
             let isOn = try await library.toggleBookmark(id: article.id, title: article.title)
             onBookmarksChanged?()
@@ -206,6 +207,8 @@ public final class ArticleModel {
     }
 
     private func fail(_ failure: Failure) {
+        // A load still in flight must not bring its page back over the failure.
+        loads += 1
         self.failure = failure
         page = nil
         contents = []

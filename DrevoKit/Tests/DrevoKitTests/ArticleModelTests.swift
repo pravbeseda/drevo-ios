@@ -186,6 +186,17 @@ struct ArticleModelTests {
         #expect(model.isBookmarked == stored)
     }
 
+    @Test func aTapBookmarksTheArticleItWasMadeOnEvenAfterAnotherOpens() async throws {
+        await model.select(102)
+        async let tap: Void = model.toggleBookmark()
+        await model.select(101)
+        await tap
+
+        #expect(try await library.isBookmarked(id: 102, title: "СЕРГИЙ РАДОНЕЖСКИЙ"))
+        #expect(try await !library.isBookmarked(id: 101, title: "АВВА"))
+        #expect(!model.isBookmarked)
+    }
+
     @Test func twoQuickBookmarkTapsAddAndRemove() async throws {
         await model.select(102)
         async let first: Void = model.toggleBookmark()
