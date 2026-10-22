@@ -148,7 +148,7 @@ state; `swift-format` (shipped with Xcode) as the formatter, checked in CI and i
 
 One pull request per step, each green before the next.
 
-- [ ] 1. Skeleton: `.gitignore`, `AGENTS.md` + `CLAUDE.md`, `.swift-format`, `.githooks/pre-commit`, `renovate.json5`, CI,
+- [x] 1. Skeleton (pravbeseda/drevo-ios#1): `.gitignore`, `AGENTS.md` + `CLAUDE.md`, `.swift-format`, `.githooks/pre-commit`, `renovate.json5`, CI,
       an empty `DrevoKit` and an app target that build. Deviations from drevo-android: no `decide-work` guard (public
       repository, so skipping a docs-only run saves nothing); the secret scan covers the whole history (no known leak to
       step around) and uses gitleaks' bundled rules alone (no signing secrets live here); a `DrevoUITests` target joins
