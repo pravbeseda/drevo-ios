@@ -33,6 +33,10 @@ every `db.lock` change**; it downloads only what is missing or stale and checks 
 fails the build with that instruction. A new database is a `db.lock` change — the release tag, the release holding
 `main`, and both hashes from that release's `SHA256SUMS` — followed by a fetch.
 
+`DrevoKit`'s tests run on drevo-db's reference build, copied into `DrevoKit/Tests/DrevoKitTests/Fixtures/` with a
+README naming the drevo-db commit; copy it again whenever drevo-db's fixtures change. `FormatFixturesTests` assembles
+every article there and compares it byte for byte with `expected/`.
+
 ## Build & test
 
 ```bash
