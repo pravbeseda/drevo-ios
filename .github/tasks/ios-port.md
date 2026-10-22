@@ -155,7 +155,7 @@ One pull request per step, each green before the next.
       the app from the start, since `xcodebuild test` needs a test target and the size-class checks will live there.
       CI pins Xcode 26.6 (the newest on the `macos-26` runner), so the iPhone Duo simulator, which needs Xcode 27, is not
       in CI yet.
-- [ ] 2. Database pinning: `db.lock` (`db-254-258`), `scripts/fetch-db.sh` with a shell test against a fake `gh`,
+- [x] 2. Database pinning (pravbeseda/drevo-ios#2): `db.lock` (`db-254-258`), `scripts/fetch-db.sh` with a shell test against a fake `gh`,
       the verifying build phase, the CI cache. `db.lock` pins the SHA-256 of each file itself rather than trusting the
       release's `SHA256SUMS` at fetch time, and names the release holding `main` instead of searching for it as
       drevo-android's `release-db-fetch.sh` does.
