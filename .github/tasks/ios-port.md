@@ -23,7 +23,7 @@ in drevo-db and drevo-android; this plan moved here from drevo-android's `.githu
 | 11 | The Xcode build phase only verifies the database files and fails with a hint to run `scripts/fetch-db.sh`; CI caches them by `db.lock`; previews and UI tests run on the fixtures | A build that downloads is non-hermetic, fights Xcode's script sandboxing and fires on previews and indexing |
 | 12 | Russian development region with a String Catalog; text size follows Dynamic Type; find in page through `WKWebView.isFindInteractionEnabled` | System controls appear in Russian; platform behaviour for free |
 | 13 | A plain `Drevo.xcodeproj` in git with folder-synchronized groups; no XcodeGen or Tuist | Logic lives in the package, so the project holds one thin target; synchronized folders keep file additions out of `project.pbxproj`, and no tool has to run after a clone or in CI |
-| 14 | `pravbeseda/drevo-ios` is a public GitHub repository; CI reads drevo-db releases through a fine-grained PAT (contents: read on drevo-db only) kept in repository secrets | Public repositories run macOS jobs free, so CI can test iPhone, iPad and iPhone Duo; the client holds no secret, and drevo-db stays private, out of reach of the repository's own `GITHUB_TOKEN` |
+| 14 | `pravbeseda/drevo-ios` is a public GitHub repository | Public repositories run macOS jobs free, so CI can test iPhone, iPad and iPhone Duo; the client holds no secret. drevo-db became public too, so CI downloads its releases with the workflow's own token and no PAT exists |
 | 15 | Bundle identifier `ru.drevoinfo`, display name «Древо» | The same identifier as the Android package; it is fixed only when the App Store Connect record is created, so a clash found then costs nothing |
 | 16 | Themes: system (default) / light / dark; dark is `styleblack.css` over the system dark appearance | Android's dark and black differ only in the chrome's grey, and iOS dark mode is already black; a custom grey palette would not reach system menus and sheets |
 
@@ -131,7 +131,7 @@ drevo-ios/
   DrevoKit/            Swift package, no UIKit/SwiftUI: the testable core, the counterpart of drevo-android's Android-free classes
   Drevo/               Xcode app target: SwiftUI views and the WKWebView bridge only
   Drevo.xcodeproj
-  db.lock              main version, patch version, SHA-256 of each
+  db.lock              the pinned drevo-db release, the release holding main, SHA-256 of each file
   scripts/fetch-db.sh  downloads the db.lock release, verifies it, places it under Drevo/Resources/Database/
   .github/workflows/   swift test + xcodebuild test on macOS, gitleaks secret scan
   AGENTS.md, CLAUDE.md (stub), renovate.json5
@@ -155,8 +155,10 @@ One pull request per step, each green before the next.
       the app from the start, since `xcodebuild test` needs a test target and the size-class checks will live there.
       CI pins Xcode 26.6 (the newest on the `macos-26` runner), so the iPhone Duo simulator, which needs Xcode 27, is not
       in CI yet.
-- [ ] 2. Database pinning: `db.lock` (`db-254-258`), `scripts/fetch-db.sh`, the verifying build phase, the CI cache and
-      the PAT secret (decision 14).
+- [x] 2. Database pinning (pravbeseda/drevo-ios#2): `db.lock` (`db-254-258`), `scripts/fetch-db.sh` with a shell test against a fake `gh`,
+      the verifying build phase, the CI cache. `db.lock` pins the SHA-256 of each file itself rather than trusting the
+      release's `SHA256SUMS` at fetch time, and names the release holding `main` instead of searching for it as
+      drevo-android's `release-db-fetch.sh` does.
 - [ ] 3. DrevoKit core: fixtures, `SQLiteDatabase` / `Statement`, `TextPatcher`, `ArticleAssembler`, `ArticleReader`,
       `FormatVersion`, `Article`, the fixture test.
 - [ ] 4. DrevoKit rest: `WordListQuery` / `SlovnikQueryBuilder`, `SearchHighlighter`, `ArticleHtmlBuilder`, `HistoryList`,

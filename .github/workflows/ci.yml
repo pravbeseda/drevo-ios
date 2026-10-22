@@ -35,6 +35,25 @@ jobs:
         if: "!cancelled()"
         run: swift test --package-path DrevoKit -Xswiftc -warnings-as-errors
 
+      - name: Test the database script
+        if: "!cancelled()"
+        run: scripts/tests/fetch-db-test.sh
+
+      - name: Restore the databases
+        if: "!cancelled()"
+        uses: actions/cache@v6
+        with:
+          path: Drevo/Resources/Database
+          key: databases-${{ hashFiles('db.lock') }}
+
+      # A cache hit costs one hash check; the script verifies every file against db.lock either way, so a cache entry
+      # cannot slip a different database into the build.
+      - name: Fetch the databases
+        if: "!cancelled()"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/fetch-db.sh
+
       - name: Build the app and run the UI tests on iPhone and iPad
         if: "!cancelled()"
         run: >-
