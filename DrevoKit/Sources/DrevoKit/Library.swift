@@ -34,6 +34,14 @@ public actor Library {
         try bookmarks.contains(id: id, title: title)
     }
 
+    /// Adds the bookmark when it is absent and removes it when present, in one step of the actor, so two quick taps
+    /// add and then remove; returns whether it is now set.
+    func toggleBookmark(id: Int, title: String) throws -> Bool {
+        let isOn = try !bookmarks.contains(id: id, title: title)
+        try setBookmark(isOn, id: id, title: title)
+        return isOn
+    }
+
     func setBookmark(_ isOn: Bool, id: Int, title: String) throws {
         if isOn {
             try bookmarks.add(id: id, title: title)

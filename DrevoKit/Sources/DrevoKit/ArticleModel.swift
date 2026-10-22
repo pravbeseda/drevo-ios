@@ -45,6 +45,7 @@ public final class ArticleModel {
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let timeZone: TimeZone
     @ObservationIgnored private var shown: Article?
+    @ObservationIgnored private var bookmarkRequests = 0
 
     public init(library: Library, baseURL: URL, now: @escaping () -> Date = Date.init, timeZone: TimeZone = .current) {
         self.library = library
@@ -107,28 +108,39 @@ public final class ArticleModel {
         await show()
     }
 
-    /// The page reported how far it is scrolled, as a fraction of its height.
-    public func recordScroll(_ position: Double) {
+    /// A page reported how far it is scrolled, as a fraction of its height. A page that is no longer the one shown
+    /// can still report while the next one loads, so only the current page's reports count.
+    public func recordScroll(_ position: Double, on page: ArticlePage) {
+        guard page == self.page else { return }
         history.recordScroll(position)
     }
 
-    /// Shows a history saved with the scene.
-    public func restore(_ history: ArticleHistory) async {
+    /// Shows a history saved with the scene; `selecting` restores an article column that was on screen.
+    public func restore(_ history: ArticleHistory, selecting: Bool) async {
         self.history = history
+        selection = selecting ? history.current?.articleID : nil
         await show()
     }
 
     public func toggleBookmark() async {
-        guard let shown else { return }
-        let isOn = !isBookmarked
+        guard let article = shown else { return }
+        bookmarkRequests += 1
+        let request = bookmarkRequests
         do {
-            try await library.setBookmark(isOn, id: shown.id, title: shown.title)
+            let isOn = try await library.toggleBookmark(id: article.id, title: article.title)
+            onBookmarksChanged?()
+            // A later tap, or another page, may have come in while this one was written; the latest one decides.
+            guard request == bookmarkRequests, article == shown else { return }
             isBookmarked = isOn
             bookmarkFailed = false
-            onBookmarksChanged?()
         } catch {
-            bookmarkFailed = true
+            if request == bookmarkRequests, article == shown { bookmarkFailed = true }
         }
+    }
+
+    /// The view has shown the bookmark failure.
+    public func dismissBookmarkFailure() {
+        bookmarkFailed = false
     }
 
     private func openStep(_ id: Int, anchor: String?) async {
@@ -170,6 +182,7 @@ public final class ArticleModel {
         page = builder.build(title: article.title, body: article.body, anchor: target.anchor, scroll: target.scroll)
         contents = article.contents
         isBookmarked = bookmarked
+        bookmarkFailed = false
         shown = article
         failure = nil
     }
@@ -182,6 +195,8 @@ public final class ArticleModel {
         self.failure = failure
         page = nil
         contents = []
+        isBookmarked = false
+        bookmarkFailed = false
         shown = nil
     }
 }

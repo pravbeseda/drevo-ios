@@ -16,8 +16,8 @@ enum Fixtures {
     }
 
     /// A library over the fixture databases, with an empty bookmarks file of its own.
-    static func library() throws -> Library {
-        try Library(main: url("main.sqlite"), patch: url("patch.sqlite"), bookmarks: scratchURL())
+    static func library(bookmarks: URL = scratchURL()) throws -> Library {
+        try Library(main: url("main.sqlite"), patch: url("patch.sqlite"), bookmarks: bookmarks)
     }
 
     static func scratchURL() -> URL {

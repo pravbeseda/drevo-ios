@@ -6,11 +6,12 @@ import Testing
 @MainActor
 struct ArticleModelTests {
     private let base = URL(fileURLWithPath: "/private/var/Drevo.app/", isDirectory: true)
+    private let bookmarksURL = Fixtures.scratchURL()
     private let library: Library
     private let model: ArticleModel
 
     init() throws {
-        library = try Fixtures.library()
+        library = try Fixtures.library(bookmarks: bookmarksURL)
         model = ArticleModel(library: library, baseURL: base, timeZone: TimeZone(identifier: "Europe/Moscow")!)
     }
 
@@ -64,7 +65,7 @@ struct ArticleModelTests {
 
     @Test func backAndForwardRestoreTheScroll() async {
         await model.select(101)
-        model.recordScroll(0.5)
+        model.recordScroll(0.5, on: model.page!)
         await model.select(102)
 
         await model.goBack()
@@ -114,9 +115,60 @@ struct ArticleModelTests {
         history.open(103)
         history.recordScroll(0.25)
 
-        await model.restore(history)
+        await model.restore(history, selecting: false)
         #expect(model.page?.title == "ПАТЕРИК")
         #expect(model.page?.html.contains("window.scrollTo(0, 0.25 * ") == true)
         #expect(model.history == history)
+        #expect(model.selection == nil)
+    }
+
+    @Test func aHistoryRestoredWithItsArticleOnScreenSelectsIt() async {
+        var history = ArticleHistory()
+        history.open(103)
+        await model.restore(history, selecting: true)
+        #expect(model.selection == 103)
+    }
+
+    @Test func aScrollFromAPageNoLongerShownIsIgnored() async {
+        await model.select(101)
+        let leaving = model.page!
+        await model.select(102)
+        // The old page's web view may report once more after the next one was opened.
+        model.recordScroll(0.9, on: leaving)
+
+        await model.goBack()
+        await model.goForward()
+        #expect(model.page?.html.contains("window.scrollTo") == false)
+    }
+
+    @Test func twoQuickBookmarkTapsAddAndRemove() async throws {
+        await model.select(102)
+        async let first: Void = model.toggleBookmark()
+        async let second: Void = model.toggleBookmark()
+        _ = await (first, second)
+
+        #expect(try await !library.isBookmarked(id: 102, title: "СЕРГИЙ РАДОНЕЖСКИЙ"))
+        #expect(!model.isBookmarked)
+    }
+
+    @Test func aBookmarkFailureLastsUntilDismissedOrAnotherPage() async throws {
+        await model.select(102)
+        try SQLiteDatabase(writableAt: bookmarksURL).execute("DROP TABLE tblSlovnik")
+        await model.toggleBookmark()
+        #expect(model.bookmarkFailed)
+
+        model.dismissBookmarkFailure()
+        #expect(!model.bookmarkFailed)
+
+        await model.toggleBookmark()
+        await model.select(101)
+        #expect(!model.bookmarkFailed)
+    }
+
+    @Test func aFailedPageIsNotBookmarked() async {
+        await model.select(102)
+        await model.toggleBookmark()
+        await model.select(999)
+        #expect(!model.isBookmarked)
     }
 }
