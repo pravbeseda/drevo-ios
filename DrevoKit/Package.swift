@@ -13,6 +13,6 @@ let package = Package(
     // a package dependency with -suppress-warnings, which conflicts with .treatAllWarnings(as: .error).
     targets: [
         .target(name: "DrevoKit"),
-        .testTarget(name: "DrevoKitTests", dependencies: ["DrevoKit"]),
+        .testTarget(name: "DrevoKitTests", dependencies: ["DrevoKit"], resources: [.copy("Fixtures")]),
     ]
 )

@@ -159,8 +159,13 @@ One pull request per step, each green before the next.
       the verifying build phase, the CI cache. `db.lock` pins the SHA-256 of each file itself rather than trusting the
       release's `SHA256SUMS` at fetch time, and names the release holding `main` instead of searching for it as
       drevo-android's `release-db-fetch.sh` does.
-- [ ] 3. DrevoKit core: fixtures, `SQLiteDatabase` / `Statement`, `TextPatcher`, `ArticleAssembler`, `ArticleReader`,
-      `FormatVersion`, `Article`, the fixture test.
+- [x] 3. DrevoKit core (pravbeseda/drevo-ios#3): fixtures, `SQLiteDatabase` / `Statement`, `TextPatcher`, `ArticleAssembler`, `ArticleReader`,
+      `FormatVersion`, `Article`, the fixture test. Deviations from drevo-android: `ArticleReader` is tested on the
+      fixture databases, since `swift test` has SQLite, rather than on fake cursors; `TocEntry` carries `isNested`
+      instead of two leading spaces in its title; `TextPatcher` rejects negative numbers, which javaxdelta's writer
+      never produces; a TOC entry is nested only when its anchor starts with `_`, as format.md says, where
+      drevo-android strips every underscore. `BundledDatabaseTests`, run by CI on the fetched databases, is the
+      release gate of format.md: the pinned files' `user_version` and all 37 853 articles of `db-254-258`.
 - [ ] 4. DrevoKit rest: `WordListQuery` / `SlovnikQueryBuilder`, `SearchHighlighter`, `ArticleHtmlBuilder`, `HistoryList`,
       `DayTitle`, `BookmarksStore` / `BookmarksSchema`, the models.
 - [ ] 5. App MVP, items 1–6 below.

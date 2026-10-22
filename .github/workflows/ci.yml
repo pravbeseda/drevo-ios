@@ -54,6 +54,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: scripts/fetch-db.sh
 
+      # The release gate of drevo-db's format.md: the pinned databases are in a format DrevoKit reads, and every
+      # article assembles. A release build, since a debug one takes minutes over 37 000 articles.
+      - name: Check the pinned databases
+        if: "!cancelled()"
+        env:
+          DREVO_DATABASE_DIR: ${{ github.workspace }}/Drevo/Resources/Database
+        run: swift test --package-path DrevoKit -c release -Xswiftc -warnings-as-errors --filter BundledDatabaseTests
+
       - name: Build the app and run the UI tests on iPhone and iPad
         if: "!cancelled()"
         run: >-
