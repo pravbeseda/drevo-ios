@@ -166,7 +166,7 @@ One pull request per step, each green before the next.
       never produces; a TOC entry is nested only when its anchor starts with `_`, as format.md says, where
       drevo-android strips every underscore. `BundledDatabaseTests`, run by CI on the fetched databases, is the
       release gate of format.md: the pinned files' `user_version` and all 37 853 articles of `db-254-258`.
-- [ ] 4a. DrevoKit rest: `WordListQuery` / `SlovnikQueryBuilder` / `WordListReader`, `SearchHighlighter`,
+- [x] 4a. DrevoKit rest (pravbeseda/drevo-ios#4): `WordListQuery` / `SlovnikQueryBuilder` / `WordListReader`, `SearchHighlighter`,
       `ArticleHtmlBuilder`, `ArticleLink`, `ArticleHistory` (for `HistoryList`), `DayTitle`, `BookmarksStore` /
       `BookmarksSchema`. Deviations from drevo-android: the search is a bound parameter with `%`, `_` and `\` taken
       literally; the main page leads the list by id rather than by its title's leading space; the page carries a
