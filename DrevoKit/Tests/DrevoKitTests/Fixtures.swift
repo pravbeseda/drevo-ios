@@ -15,6 +15,15 @@ enum Fixtures {
         try SQLiteDatabase(readOnlyAt: url("main.sqlite"))
     }
 
+    /// A library over the fixture databases, with an empty bookmarks file of its own.
+    static func library(bookmarks: URL = scratchURL()) throws -> Library {
+        try Library(main: url("main.sqlite"), patch: url("patch.sqlite"), bookmarks: bookmarks)
+    }
+
+    static func scratchURL() -> URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).sqlite")
+    }
+
     static func expectedText(_ id: Int) throws -> String {
         try String(contentsOf: url("expected/\(id).txt"), encoding: .utf8)
     }
