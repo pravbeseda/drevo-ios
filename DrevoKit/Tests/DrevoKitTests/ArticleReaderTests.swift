@@ -40,6 +40,12 @@ struct ArticleReaderTests {
         #expect(try read(4)?.title == "ГЛАВНАЯ СТРАНИЦА")
     }
 
+    @Test func findsAnArticleByItsTitle() throws {
+        let reader = ArticleReader(patch: try Fixtures.patch(), main: try Fixtures.main())
+        #expect(try reader.id(forTitle: "АВВА") == 101)
+        #expect(try reader.id(forTitle: "НЕТ ТАКОЙ СТАТЬИ") == nil)
+    }
+
     @Test func unknownIDIsNil() throws {
         #expect(try read(999) == nil)
     }
