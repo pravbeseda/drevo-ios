@@ -32,10 +32,11 @@ struct Article: Equatable {
             guard fields.count == 2 else { return nil }
             let anchor = fields[0].trimmed
             let entryTitle = fields[1].trimmed
+            let isNested = anchor.hasPrefix("_")
             return TocEntry(
                 title: entryTitle == "Начало статьи" ? title : entryTitle,
-                anchor: anchor.replacingOccurrences(of: "_", with: ""),
-                isNested: anchor.contains("_"))
+                anchor: isNested ? String(anchor.dropFirst()) : anchor,
+                isNested: isNested)
         }
     }
 }

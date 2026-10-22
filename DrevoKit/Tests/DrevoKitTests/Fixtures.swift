@@ -19,6 +19,11 @@ enum Fixtures {
         try String(contentsOf: url("expected/\(id).txt"), encoding: .utf8)
     }
 
-    /// The ids of every article in the fixture index.
-    static let articleIDs = [4, 101, 102, 103, 104, 105, 106]
+    /// The ids of every article in the fixture index, read from it, so that an article added in drevo-db is tested too.
+    static let articleIDs: [Int] = {
+        let statement = try! patch().prepare("SELECT _id FROM tblSlovnik ORDER BY _id")
+        var ids: [Int] = []
+        while try! statement.step() { ids.append(statement.int(at: 0)) }
+        return ids
+    }()
 }

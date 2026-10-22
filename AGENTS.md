@@ -36,6 +36,9 @@ fails the build with that instruction. A new database is a `db.lock` change — 
 `DrevoKit`'s tests run on drevo-db's reference build, copied into `DrevoKit/Tests/DrevoKitTests/Fixtures/` with a
 README naming the drevo-db commit; copy it again whenever drevo-db's fixtures change. `FormatFixturesTests` assembles
 every article there and compares it byte for byte with `expected/`.
+`BundledDatabaseTests` is the release gate drevo-db's `docs/format.md` asks for: on the databases `db.lock` pins it
+checks the format version (`FormatVersion`) and assembles every article. It runs only when `DREVO_DATABASE_DIR` is
+set, which CI does after fetching; run it after every `db.lock` change.
 
 ## Build & test
 
@@ -44,6 +47,8 @@ swift test --package-path DrevoKit -Xswiftc -warnings-as-errors   # the core, on
 scripts/swift-format.sh lint                                      # formatting, as CI and the pre-commit hook check it
 scripts/swift-format.sh format                                    # format every tracked Swift file in place
 scripts/tests/fetch-db-test.sh                                    # scripts/fetch-db.sh against a fake gh
+DREVO_DATABASE_DIR=$PWD/Drevo/Resources/Database \
+  swift test --package-path DrevoKit -c release --filter BundledDatabaseTests   # the pinned databases, as CI checks them
 ```
 
 The app's build and UI tests run through `xcodebuild test -scheme Drevo`; the exact command and simulator destinations
@@ -81,8 +86,8 @@ Point each checkout at it once: `git config core.hooksPath .githooks`. `gitleaks
 
 `.github/workflows/ci.yml` runs on pull requests against `main`, pushes to `main` and `workflow_dispatch`:
 
-- `checks` — formatting, `swift test`, the `fetch-db.sh` test, the databases (cached by `db.lock`'s hash) and
-  `xcodebuild test` on an iPhone and an iPad simulator, on macOS.
+- `checks` — formatting, `swift test`, the `fetch-db.sh` test, the databases (cached by `db.lock`'s hash),
+  `BundledDatabaseTests` on them, and `xcodebuild test` on an iPhone and an iPad simulator, on macOS.
 - `secret-scan` — `gitleaks` over the whole history.
 
 Dependency updates arrive through Renovate (`renovate.json5`, extending

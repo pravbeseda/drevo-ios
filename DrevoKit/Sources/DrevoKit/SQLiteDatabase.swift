@@ -69,8 +69,10 @@ public final class Statement {
     fileprivate init(database: SQLiteDatabase, sql: String) throws {
         var handle: OpaquePointer?
         try database.check(sqlite3_prepare_v2(database.handle, sql, -1, &handle, nil))
+        // Empty SQL or a lone comment prepares without error into no statement at all.
+        guard let handle else { throw SQLiteError(code: SQLITE_MISUSE, message: "no statement in \"\(sql)\"") }
         self.database = database
-        self.handle = handle!
+        self.handle = handle
     }
 
     deinit {

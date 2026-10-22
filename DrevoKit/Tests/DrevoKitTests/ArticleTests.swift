@@ -36,6 +36,17 @@ struct ArticleTests {
         #expect(article.body == " <p>Текст</p>")
     }
 
+    // format.md: only a leading underscore marks nesting; one inside an anchor is part of its name.
+    @Test func onlyALeadingUnderscoreMarksNesting() {
+        let article = article("#section_one|Житие #_part_two|Детство <drevo>текст")
+
+        #expect(
+            article.contents == [
+                TocEntry(title: "Житие", anchor: "section_one", isNested: false),
+                TocEntry(title: "Детство", anchor: "part_two", isNested: true),
+            ])
+    }
+
     @Test func malformedEntriesAreSkipped() {
         let article = article("#t0|Житие #broken #t1|a|b #t2|Почитание <drevo>текст")
         #expect(article.contents.map(\.anchor) == ["t0", "t2"])

@@ -72,6 +72,13 @@ struct SQLiteDatabaseTests {
         #expect(error?.message.contains("syntax error") == true)
     }
 
+    // SQLite prepares these without error but returns no statement.
+    @Test(arguments: ["", "  ", "-- nothing to run"])
+    func sqlWithoutAStatementIsAnError(sql: String) throws {
+        let database = try patch()
+        #expect(throws: SQLiteError.self) { try database.prepare(sql) }
+    }
+
     @Test func writableDatabaseIsCreatedAndKeepsWhatIsWritten() throws {
         let url = scratchURL()
         defer { try? FileManager.default.removeItem(at: url) }
