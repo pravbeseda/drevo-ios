@@ -1,0 +1,12 @@
+# Xcode and SwiftPM build output
+build/
+DerivedData/
+.build/
+.swiftpm/
+xcuserdata/
+*.xcuserstate
+
+# The databases fetched by scripts/fetch-db.sh: hundreds of megabytes, pinned by db.lock
+Drevo/Resources/Database/
+
+.DS_Store
