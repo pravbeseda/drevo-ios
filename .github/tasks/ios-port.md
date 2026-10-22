@@ -159,7 +159,7 @@ One pull request per step, each green before the next.
       the verifying build phase, the CI cache. `db.lock` pins the SHA-256 of each file itself rather than trusting the
       release's `SHA256SUMS` at fetch time, and names the release holding `main` instead of searching for it as
       drevo-android's `release-db-fetch.sh` does.
-- [ ] 3. DrevoKit core: fixtures, `SQLiteDatabase` / `Statement`, `TextPatcher`, `ArticleAssembler`, `ArticleReader`,
+- [x] 3. DrevoKit core (pravbeseda/drevo-ios#3): fixtures, `SQLiteDatabase` / `Statement`, `TextPatcher`, `ArticleAssembler`, `ArticleReader`,
       `FormatVersion`, `Article`, the fixture test. Deviations from drevo-android: `ArticleReader` is tested on the
       fixture databases, since `swift test` has SQLite, rather than on fake cursors; `TocEntry` carries `isNested`
       instead of two leading spaces in its title; `TextPatcher` rejects negative numbers, which javaxdelta's writer
