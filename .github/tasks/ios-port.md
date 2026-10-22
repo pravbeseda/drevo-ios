@@ -176,7 +176,7 @@ One pull request per step, each green before the next.
       `ArticleHistory` keeps typed pages, not `id#scroll` strings; `SearchHighlighter` returns ranges for an
       `AttributedString`, not `<b>` markup. Article bodies link by bare id (`href="16473"`, ~110 000 links in the
       corpus), `#anchor` within the page, or `http(s)`; titles are looked up only for the calendar days.
-- [ ] 4b. The `@Observable` models the views bind to (decisions 10, 17): `Library` (an actor over `main`, `patch` and
+- [x] 4b (pravbeseda/drevo-ios#5). The `@Observable` models the views bind to (decisions 10, 17): `Library` (an actor over `main`, `patch` and
       the bookmarks), `WordListModel` (topic, search, rows; the view reloads it with `.task(id: query)`, and a stale
       result is dropped), `ArticleModel` (page, contents, history, bookmark, special pages, today / tomorrow, link
       decisions for the web view, the word list selection that drives the split view) and `SettingsModel` (theme,
