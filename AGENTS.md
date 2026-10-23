@@ -59,6 +59,9 @@ The app's build and UI tests run through `xcodebuild test -scheme Drevo`; the ex
 are in `.github/workflows/ci.yml`. Locally Xcode 27 is used; CI pins Xcode 26.6 in that workflow, so the project and
 package stay buildable by both. The package declares `swift-tools-version: 6.2`.
 
+The iPhone Duo simulator (iOS 27.1 runtime) runs only locally. Run the UI tests on it twice, folded and unfolded: its
+pose is set in Device Hub, since neither `simctl` nor XCUITest can fold it, and stays set between runs.
+
 **Formatting is owned by swift-format** (the one shipped with Xcode, config in `.swift-format`): run the format script
 rather than formatting by hand.
 

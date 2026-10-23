@@ -23,7 +23,7 @@ in drevo-db and drevo-android; this plan moved here from drevo-android's `.githu
 | 11 | The Xcode build phase only verifies the database files and fails with a hint to run `scripts/fetch-db.sh`; CI caches them by `db.lock`; the UI tests run on those pinned files | A build that downloads is non-hermetic, fights Xcode's script sandboxing and fires on previews and indexing; every build bundles the pinned files anyway, and the pin keeps the titles the tests look for fixed |
 | 12 | Russian development region with a String Catalog; text size follows Dynamic Type; find in page through `WKWebView.isFindInteractionEnabled` | System controls appear in Russian; platform behaviour for free |
 | 13 | A plain `Drevo.xcodeproj` in git with folder-synchronized groups; no XcodeGen or Tuist | Logic lives in the package, so the project holds one thin target; synchronized folders keep file additions out of `project.pbxproj`, and no tool has to run after a clone or in CI |
-| 14 | `pravbeseda/drevo-ios` is a public GitHub repository | Public repositories run macOS jobs free, so CI can test iPhone, iPad and iPhone Duo; the client holds no secret. drevo-db became public too, so CI downloads its releases with the workflow's own token and no PAT exists |
+| 14 | `pravbeseda/drevo-ios` is a public GitHub repository | Public repositories run macOS jobs free, so CI can test iPhone and iPad, and the iPhone Duo once its runner has Xcode 27; the client holds no secret. drevo-db became public too, so CI downloads its releases with the workflow's own token and no PAT exists |
 | 15 | Bundle identifier `ru.drevoinfo`, display name «Древо» | The same identifier as the Android package; it is fixed only when the App Store Connect record is created, so a clash found then costs nothing |
 | 16 | Themes: system (default) / light / dark; dark is `styleblack.css` over the system dark appearance | Android's dark and black differ only in the chrome's grey, and iOS dark mode is already black; a custom grey palette would not reach system menus and sheets |
 | 17 | The `@Observable` models live in the `DrevoKit` target itself; a `Library` actor owns the databases and does their work off the main actor | The models are the core's only consumer, so its types stay internal and the public API is what the views need; a second consumer (a widget) is the moment to split targets |
@@ -188,14 +188,20 @@ One pull request per step, each green before the next.
       selection are kept in `@SceneStorage` and restored through `ArticleModel.start(restoring:)`; a web view created
       after its page was shown (the split view collapsing or expanding) loads `ArticleModel.resumedPage()`, the page at
       its last reported scroll; the split view uses the balanced style, so a portrait iPad keeps the list beside the
-      article rather than sliding it over. The iPhone Duo is not tested yet: it needs the iOS 27 simulator runtime,
-      which neither CI's Xcode 26.6 nor this checkout has.
-- [ ] 5b. App MVP, items 5–6 below: the "⋯" menu and the settings screen. The release on the About screen comes from
-      `db.lock`, which the app bundles through the symlink `Drevo/Resources/db.lock`; the font size is a CSS zoom on the
-      page, the setting times the system's body text size over its default, set by a user script before the page
-      restores its scroll; the web view runs in mobile content mode, since iPad's desktop mode fits the page to the
-      width and undoes the zoom. Deviation: the search match (drevo-android's `searchType`, a switch over its list) is a
-      setting too.
+      article rather than sliding it over. The iPhone Duo was tested after 5b (see "iPhone Duo" below).
+- [x] 5b. App MVP (pravbeseda/drevo-ios#7), items 5–6 below: the "⋯" menu and the settings screen. The release on
+      the About screen comes from `db.lock`, which the app bundles through the symlink `Drevo/Resources/db.lock`; the
+      font size is a CSS zoom on the page, the setting times the system's body text size over its default, set by a
+      user script before the page restores its scroll; the web view runs in mobile content mode, since iPad's desktop
+      mode fits the page to the width and undoes the zoom. Deviation: the search match (drevo-android's `searchType`, a
+      switch over its list) is a setting too.
+- [x] iPhone Duo: the UI tests pass on the iPhone Duo simulator (iOS 27.1, Xcode 27.1) folded and unfolded, each pose
+      set by hand in Device Hub, since neither `simctl` nor XCUITest can fold it; folding and unfolding with an article
+      open keeps the article, the selection and the list's scroll. The tests read the window's size class instead of
+      the device idiom, and tap the back button by its identifier, which the Duo's vertical toolbar moves out of the
+      navigation bar. The search field is pinned under the list's title on every width: `searchable` keeps the
+      placement it started with, so one that followed the width stayed in the bottom bar after unfolding. CI still
+      cannot run the Duo, which needs Xcode 27.
 
 ### DrevoKit (test-first, `swift test`)
 
@@ -220,8 +226,9 @@ MVP:
 
 1. `NavigationSplitView` per decision 8: word list and article side by side on a regular width (iPad, unfolded
    iPhone Duo), one column on a compact one; the selection survives every collapse and expansion.
-2. Word list with `.searchable`; its title is the filter menu (all articles as «Все статьи», persons, organisations, places,
-   terms, church, bible, books, saints, holidays, church-slavonic, documents, bookmarks).
+2. Word list with `.searchable`, pinned under its title; its title is the filter menu (all articles as «Все статьи»,
+   persons, organisations, places, terms, church, bible, books, saints, holidays, church-slavonic, documents,
+   bookmarks).
 3. Article in `WKWebView` loading the HTML with the bundled `style.css`, `styleblack.css`, `common.js`, `jquery.min.js`
    (copied from `drevo/src/main/assets/`); in-corpus links (bare ids) classified by `ArticleLink`; TOC sheet; back / forward;
    scroll position restored from the model (decision 9).

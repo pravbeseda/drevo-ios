@@ -6,8 +6,8 @@ final class ReaderTests: XCTestCase {
     private let app = XCUIApplication()
     private let timeout: TimeInterval = 10
 
-    /// The tests check the layout against the simulator they run on; the app itself never asks for the idiom.
-    private var isRegularWidth: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    /// The window's size class, which the app lays itself out by: a split view column may report a narrowed one.
+    private var isRegularWidth: Bool { app.windows.firstMatch.horizontalSizeClass == .regular }
 
     private func launch() {
         continueAfterFailure = false
@@ -25,16 +25,10 @@ final class ReaderTests: XCTestCase {
         XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: timeout))
     }
 
-    /// On a compact width the article is pushed over the list; the navigation bar's first button pops it.
-    private func backToTheList(from title: String) {
+    /// On a compact width the article is pushed over the list; its back button, wherever the bar puts it, pops it.
+    private func backToTheList() {
         guard !isRegularWidth else { return }
-        app.navigationBars[title].buttons.firstMatch.tap()
-    }
-
-    /// Leaves the search, which hides the navigation bar and with it the title menu while it is active.
-    private func endSearch() {
-        let close = app.buttons["закрыть"]
-        if close.exists { close.tap() }
+        app.buttons["BackButton"].tap()
     }
 
     private func pick(_ topic: String) {
@@ -52,16 +46,15 @@ final class ReaderTests: XCTestCase {
     }
 
     func testARegularWidthShowsTheMainPageBesideTheList() throws {
-        try XCTSkipUnless(isRegularWidth, "two columns need a regular width")
         launch()
+        try XCTSkipUnless(isRegularWidth, "two columns need a regular width")
         XCTAssertTrue(app.navigationBars["Все статьи"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.navigationBars["ГЛАВНАЯ СТРАНИЦА"].waitForExistence(timeout: timeout))
         open("СЕРГИЙ РАДОНЕЖСКИЙ", searching: "сергий радонеж")
         XCTAssertTrue(app.searchFields.firstMatch.isHittable)
     }
 
-    func testARegularWidthKeepsTheSearchFieldWhileTheListScrolls() throws {
-        try XCTSkipUnless(isRegularWidth, "the sidebar's search field needs a regular width")
+    func testTheSearchFieldStaysWhileTheListScrolls() {
         launch()
         let list = app.collectionViews.firstMatch
         let row = list.staticTexts["ГЛАВНАЯ СТРАНИЦА"]
@@ -72,11 +65,11 @@ final class ReaderTests: XCTestCase {
     }
 
     func testACompactWidthPushesTheArticleOverTheListAndBackReturns() throws {
-        try XCTSkipIf(isRegularWidth, "one column needs a compact width")
         launch()
+        try XCTSkipIf(isRegularWidth, "one column needs a compact width")
         open("СЕРГИЙ РАДОНЕЖСКИЙ", searching: "сергий радонеж")
         XCTAssertFalse(app.searchFields.firstMatch.isHittable)
-        backToTheList(from: "СЕРГИЙ РАДОНЕЖСКИЙ")
+        backToTheList()
         XCTAssertTrue(app.navigationBars["СЕРГИЙ РАДОНЕЖСКИЙ"].waitForNonExistence(timeout: timeout))
         XCTAssertTrue(app.searchFields.firstMatch.isHittable)
     }
@@ -112,7 +105,13 @@ final class ReaderTests: XCTestCase {
 
     func testABookmarkIsListedUnderBookmarksUntilRemoved() {
         launch()
-        open("СЕРГИЙ РАДОНЕЖСКИЙ", searching: "сергий радонеж")
+        // Opened from the list, not the search: going back would refocus the search field, and the keyboard sliding
+        // in after the app reports idle can catch the tap that leaves the search.
+        let title = "13 СИРИЙСКИХ ОТЦОВ"
+        let row = app.collectionViews.staticTexts[title]
+        XCTAssertTrue(row.waitForExistence(timeout: timeout))
+        row.tap()
+        XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: timeout))
         // A run stopped halfway can leave the bookmark set.
         if app.buttons["Убрать закладку"].waitForExistence(timeout: 2) {
             app.buttons["Убрать закладку"].tap()
@@ -120,16 +119,14 @@ final class ReaderTests: XCTestCase {
         app.buttons["Добавить закладку"].tap()
         XCTAssertTrue(app.buttons["Убрать закладку"].waitForExistence(timeout: timeout))
 
-        backToTheList(from: "СЕРГИЙ РАДОНЕЖСКИЙ")
-        endSearch()
+        backToTheList()
         pick("Закладки")
-        let row = app.collectionViews.staticTexts["СЕРГИЙ РАДОНЕЖСКИЙ"]
         XCTAssertTrue(row.waitForExistence(timeout: timeout))
 
         row.tap()
         app.buttons["Убрать закладку"].tap()
         XCTAssertTrue(app.buttons["Добавить закладку"].waitForExistence(timeout: timeout))
-        backToTheList(from: "СЕРГИЙ РАДОНЕЖСКИЙ")
+        backToTheList()
         XCTAssertTrue(row.waitForNonExistence(timeout: timeout))
     }
 

@@ -5,7 +5,6 @@ import SwiftUI
 struct WordListView: View {
     @Bindable var model: WordListModel
     @Binding var selection: Int?
-    let searchPlacement: SearchFieldPlacement
 
     var body: some View {
         List(model.entries, selection: $selection) { entry in
@@ -33,7 +32,9 @@ struct WordListView: View {
                 }
             }
         }
-        .searchable(text: $model.search, placement: searchPlacement, prompt: "Поиск")
+        // Pinned on every width: a placement that followed the width would not change with it, since `searchable`
+        // keeps the one it started with, and the default one scrolls away with the sidebar's list.
+        .searchable(text: $model.search, placement: .navigationBarDrawer(displayMode: .always), prompt: "Поиск")
         .task(id: model.query) { await model.load() }
     }
 }

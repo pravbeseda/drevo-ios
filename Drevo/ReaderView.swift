@@ -23,13 +23,8 @@ struct ReaderView: View {
 
     var body: some View {
         NavigationSplitView {
-            // The sidebar's search field would otherwise scroll away with the list; a compact width keeps it in
-            // the bottom bar.
-            WordListView(
-                model: wordList, selection: selection,
-                searchPlacement: sizeClass == .compact ? .automatic : .navigationBarDrawer(displayMode: .always)
-            )
-            .toolbar { menu(where: sizeClass == .compact) }
+            WordListView(model: wordList, selection: selection)
+                .toolbar { menu(where: sizeClass == .compact) }
         } detail: {
             ArticleView(model: article, settings: settings)
                 .toolbar { menu(where: sizeClass != .compact) }
