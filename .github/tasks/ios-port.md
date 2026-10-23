@@ -17,7 +17,7 @@ in drevo-db and drevo-android; this plan moved here from drevo-android's `.githu
 | 5 | Minimum iOS 17, SwiftUI with `@Observable` | iPhone XS/XR and newer; iOS 16 adds only iPhone 8/X at the cost of the old observation model |
 | 6 | System `SQLite3` behind a thin in-house wrapper, no dependency | Six to eight queries and one writable table do not justify GRDB; the wrapper is one replaceable place |
 | 7 | New code in drevo-db is Kotlin; phase 1 rewrote `MakeDB3` in Kotlin whole | The rule drevo-android keeps for new files; the live generator was ~280 lines, and comparing `sqlite3 .dump` output against the old build proves the rewrite |
-| 8 | Two-column `NavigationSplitView` (word list, article). The list's title is its filter menu (`toolbarTitleMenu`): «Древо» for all articles, the topic name («Святые») or «Закладки». Special pages and settings sit in a "⋯" menu, over the list on a compact width and over the article on a regular one | One navigation mechanism; the Android drawer is not an iOS idiom, and a three-column split or a tab bar adds a second axis of transitions for little gain |
+| 8 | Two-column `NavigationSplitView` (word list, article). The list's title is its filter menu (`toolbarTitleMenu`): «Все статьи» for all articles, the topic name («Святые») or «Закладки». Special pages and settings sit in a "⋯" menu, over the list on a compact width and over the article on a regular one | One navigation mechanism; the Android drawer is not an iOS idiom, and a three-column split or a tab bar adds a second axis of transitions for little gain |
 | 9 | The layout follows the horizontal size class, never the device idiom; the selected article, history, anchor and scroll position live in models, not in the web view | Unfolding an iPhone Duo, iPad Split View / Stage Manager and rotation are the same event to the app, and each may recreate the web view |
 | 10 | `@Observable` models live in a package target and are tested by `swift test`; Swift 6 language mode, Swift Testing, warnings as errors | "Views hold no logic" needs a testable home for the logic; `Observation` is not SwiftUI; a gate, not a report, as in drevo-android |
 | 11 | The Xcode build phase only verifies the database files and fails with a hint to run `scripts/fetch-db.sh`; CI caches them by `db.lock`; the UI tests run on those pinned files | A build that downloads is non-hermetic, fights Xcode's script sandboxing and fires on previews and indexing; every build bundles the pinned files anyway, and the pin keeps the titles the tests look for fixed |
@@ -220,7 +220,7 @@ MVP:
 
 1. `NavigationSplitView` per decision 8: word list and article side by side on a regular width (iPad, unfolded
    iPhone Duo), one column on a compact one; the selection survives every collapse and expansion.
-2. Word list with `.searchable`; its title is the filter menu (all articles as «Древо», persons, organisations, places,
+2. Word list with `.searchable`; its title is the filter menu (all articles as «Все статьи», persons, organisations, places,
    terms, church, bible, books, saints, holidays, church-slavonic, documents, bookmarks).
 3. Article in `WKWebView` loading the HTML with the bundled `style.css`, `styleblack.css`, `common.js`, `jquery.min.js`
    (copied from `drevo/src/main/assets/`); in-corpus links (bare ids) classified by `ArticleLink`; TOC sheet; back / forward;
