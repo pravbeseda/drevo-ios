@@ -5,11 +5,14 @@ import SwiftUI
 struct WordListView: View {
     @Bindable var model: WordListModel
     @Binding var selection: Int?
+    let searchPlacement: SearchFieldPlacement
 
     var body: some View {
         List(model.entries, selection: $selection) { entry in
             Text(SearchHighlighter.highlighted(model.search, in: entry.title))
         }
+        // Replaces the inset-grouped list's tall gap under a compact navigation bar.
+        .contentMargins(.top, 8, for: .scrollContent)
         .overlay {
             if model.failed {
                 ContentUnavailableView("Не удалось загрузить словник", systemImage: "exclamationmark.triangle")
@@ -30,7 +33,7 @@ struct WordListView: View {
                 }
             }
         }
-        .searchable(text: $model.search, prompt: "Поиск")
+        .searchable(text: $model.search, placement: searchPlacement, prompt: "Поиск")
         .task(id: model.query) { await model.load() }
     }
 }
@@ -43,7 +46,7 @@ extension Topic {
 
     var title: LocalizedStringResource {
         switch self {
-        case .all: "Древо"
+        case .all: "Все статьи"
         case .persons: "Персоналии"
         case .organisations: "Организации"
         case .places: "География"

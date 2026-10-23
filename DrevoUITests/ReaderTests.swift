@@ -38,25 +38,36 @@ final class ReaderTests: XCTestCase {
     }
 
     private func pick(_ topic: String) {
-        let title = app.navigationBars.buttons["Древо"]
+        let title = app.navigationBars.buttons["Все статьи"]
         XCTAssertTrue(title.waitForExistence(timeout: timeout))
         title.tap()
         app.buttons[topic].tap()
         XCTAssertTrue(app.navigationBars[topic].waitForExistence(timeout: timeout))
     }
 
-    func testTheWordListShowsAllArticlesUnderTheTitleOfTheTree() {
+    func testTheWordListShowsAllArticlesUnderItsTitle() {
         launch()
-        XCTAssertTrue(app.navigationBars["Древо"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.navigationBars["Все статьи"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.staticTexts["ГЛАВНАЯ СТРАНИЦА"].waitForExistence(timeout: timeout))
     }
 
     func testARegularWidthShowsTheMainPageBesideTheList() throws {
         try XCTSkipUnless(isRegularWidth, "two columns need a regular width")
         launch()
-        XCTAssertTrue(app.navigationBars["Древо"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.navigationBars["Все статьи"].waitForExistence(timeout: timeout))
         XCTAssertTrue(app.navigationBars["ГЛАВНАЯ СТРАНИЦА"].waitForExistence(timeout: timeout))
         open("СЕРГИЙ РАДОНЕЖСКИЙ", searching: "сергий радонеж")
+        XCTAssertTrue(app.searchFields.firstMatch.isHittable)
+    }
+
+    func testARegularWidthKeepsTheSearchFieldWhileTheListScrolls() throws {
+        try XCTSkipUnless(isRegularWidth, "the sidebar's search field needs a regular width")
+        launch()
+        let list = app.collectionViews.firstMatch
+        let row = list.staticTexts["ГЛАВНАЯ СТРАНИЦА"]
+        XCTAssertTrue(row.waitForExistence(timeout: timeout))
+        list.swipeUp()
+        XCTAssertFalse(row.isHittable)
         XCTAssertTrue(app.searchFields.firstMatch.isHittable)
     }
 
