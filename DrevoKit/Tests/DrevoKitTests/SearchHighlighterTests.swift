@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 
 @testable import DrevoKit
@@ -20,5 +21,17 @@ struct SearchHighlighterTests {
 
     @Test func aTitleWithoutTheSearchHasNoMatch() {
         #expect(SearchHighlighter.matches(of: "сер", in: "АВРААМ").isEmpty)
+    }
+
+    @Test func theHighlightedTitleEmphasisesEveryMatch() {
+        let title = SearchHighlighter.highlighted("ан", in: "АННАН")
+        #expect(String(title.characters) == "АННАН")
+        let emphasised = title.runs.filter { $0.inlinePresentationIntent == .stronglyEmphasized }
+        #expect(emphasised.map { String(title[$0.range].characters) } == ["АН", "АН"])
+    }
+
+    @Test func withoutASearchTheTitleIsPlain() {
+        let title = SearchHighlighter.highlighted("", in: "АННАН")
+        #expect(title.runs.allSatisfy { $0.inlinePresentationIntent == nil })
     }
 }

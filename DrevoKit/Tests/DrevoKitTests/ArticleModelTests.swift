@@ -77,6 +77,19 @@ struct ArticleModelTests {
         #expect(model.page?.title == "СЕРГИЙ РАДОНЕЖСКИЙ")
     }
 
+    @Test func aNewWebViewResumesThePageWhereItWasLeft() async {
+        await model.select(101)
+        model.recordScroll(0.5, onPage: model.pageID)
+        #expect(model.page?.html.contains("window.scrollTo") == false)
+        #expect(model.resumedPage()?.html.contains("window.scrollTo(0, 0.5 * ") == true)
+        #expect(model.resumedPage()?.title == "АВВА")
+    }
+
+    @Test func aFailedPageHasNothingToResume() async {
+        await model.select(999)
+        #expect(model.resumedPage() == nil)
+    }
+
     @Test func togglingTheBookmarkStoresItAndReports() async throws {
         var changes = 0
         model.onBookmarksChanged = { changes += 1 }
@@ -110,23 +123,45 @@ struct ArticleModelTests {
         #expect(model.failure == .noArticleForDay)
     }
 
-    @Test func aRestoredHistoryShowsItsPageAtItsScroll() async {
-        var history = ArticleHistory()
-        history.open(103)
-        history.recordScroll(0.25)
+    @Test func aSavedWindowShowsItsPageAtItsScroll() async throws {
+        await model.select(103)
+        model.recordScroll(0.25, onPage: model.pageID)
+        await model.select(nil)
+        let saved = try #require(model.savedWindow())
 
-        await model.restore(history, selecting: false)
-        #expect(model.page?.title == "ПАТЕРИК")
-        #expect(model.page?.html.contains("window.scrollTo(0, 0.25 * ") == true)
-        #expect(model.history == history)
-        #expect(model.selection == nil)
+        let next = ArticleModel(library: library, baseURL: base)
+        await next.start(restoring: saved)
+        #expect(next.page?.title == "ПАТЕРИК")
+        #expect(next.page?.html.contains("window.scrollTo(0, 0.25 * ") == true)
+        #expect(next.history == model.history)
+        #expect(next.selection == nil)
     }
 
-    @Test func aHistoryRestoredWithItsArticleOnScreenSelectsIt() async {
-        var history = ArticleHistory()
-        history.open(103)
-        await model.restore(history, selecting: true)
-        #expect(model.selection == 103)
+    @Test func aWindowSavedWithItsArticleOnScreenSelectsIt() async throws {
+        await model.select(103)
+        let saved = try #require(model.savedWindow())
+        let next = ArticleModel(library: library, baseURL: base)
+        await next.start(restoring: saved)
+        #expect(next.selection == 103)
+    }
+
+    @Test func anUnreadableSavedWindowStartsAtTheMainPageAndIsSavedSo() async throws {
+        await model.start(restoring: Data("not json".utf8))
+        #expect(model.page?.title == "ГЛАВНАЯ СТРАНИЦА")
+        #expect(model.selection == nil)
+
+        let saved = try #require(model.savedWindow())
+        let next = ArticleModel(library: library, baseURL: base)
+        await next.start(restoring: saved)
+        #expect(next.selection == nil)
+    }
+
+    @Test func startingAgainKeepsWhatIsShown() async throws {
+        await model.select(103)
+        let saved = try #require(model.savedWindow())
+        await model.select(102)
+        await model.start(restoring: saved)
+        #expect(model.page?.title == "СЕРГИЙ РАДОНЕЖСКИЙ")
     }
 
     @Test func aScrollFromAPageNoLongerShownIsIgnored() async {

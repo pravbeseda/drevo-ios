@@ -16,6 +16,12 @@ public enum LinkDecision: Equatable, Sendable {
     case openExternally(URL)
 }
 
+/// What `ArticleModel.savedWindow()` encodes.
+private struct SavedWindow: Codable {
+    var history: ArticleHistory
+    var isSelected: Bool
+}
+
 /// The article column: the page on screen, its history, and the word list selection that shows it.
 @MainActor
 @Observable
@@ -59,11 +65,26 @@ public final class ArticleModel {
         self.timeZone = timeZone
     }
 
-    /// Shows the main page when nothing else is shown yet, without selecting it.
-    public func start() async {
+    /// Shows what a window saved with `savedWindow()` had on screen, or else the main page, unselected; nothing once a
+    /// page is shown, as when a window's view appears again.
+    public func start(restoring saved: Data? = nil) async {
         guard history.current == nil else { return }
-        history.open(SpecialArticle.mainPage.rawValue)
+        // A window this version cannot read, as from a later one, starts over at the main page.
+        if let saved, let window = try? JSONDecoder().decode(SavedWindow.self, from: saved),
+            let current = window.history.current
+        {
+            history = window.history
+            selection = window.isSelected ? current.articleID : nil
+        } else {
+            history.open(SpecialArticle.mainPage.rawValue)
+        }
         await show()
+    }
+
+    /// The history and whether its article is selected, as one value for a window to keep and hand back to
+    /// `start(restoring:)`; it changes whenever `history` or `selection` does.
+    public func savedWindow() -> Data? {
+        try? JSONEncoder().encode(SavedWindow(history: history, isSelected: selection != nil))
     }
 
     /// The word list's selection changed; `nil` keeps the page for when the article column is visible again.
@@ -121,11 +142,11 @@ public final class ArticleModel {
         history.recordScroll(position)
     }
 
-    /// Shows a history saved with the scene; `selecting` restores an article column that was on screen.
-    public func restore(_ history: ArticleHistory, selecting: Bool) async {
-        self.history = history
-        selection = selecting ? history.current?.articleID : nil
-        await show()
+    /// The page on screen at the scroll it was last reported at, for a web view created after the page was shown,
+    /// as when the split view collapses or expands; `nil` when there is none.
+    public func resumedPage() -> ArticlePage? {
+        guard let article = shown, let current = history.current else { return nil }
+        return page(of: article, at: current)
     }
 
     /// Taps are written one after another, in the order they came, so the model always ends where the file does.
@@ -196,14 +217,18 @@ public final class ArticleModel {
             fail(.notFound)
             return
         }
-        let builder = ArticleHtmlBuilder(today: now(), timeZone: timeZone)
-        page = builder.build(title: article.title, body: article.body, anchor: target.anchor, scroll: target.scroll)
+        page = page(of: article, at: target)
         pageID = load
         contents = article.contents
         isBookmarked = bookmarked
         bookmarkFailed = false
         shown = article
         failure = nil
+    }
+
+    private func page(of article: Article, at target: ArticleHistory.Page) -> ArticlePage {
+        ArticleHtmlBuilder(today: now(), timeZone: timeZone)
+            .build(title: article.title, body: article.body, anchor: target.anchor, scroll: target.scroll)
     }
 
     private func fail(_ failure: Failure) {

@@ -20,7 +20,7 @@ in drevo-db and drevo-android; this plan moved here from drevo-android's `.githu
 | 8 | Two-column `NavigationSplitView` (word list, article). The list's title is its filter menu (`toolbarTitleMenu`): «Древо» for all articles, the topic name («Святые») or «Закладки». Special pages and settings sit in a "⋯" menu, over the list on a compact width and over the article on a regular one | One navigation mechanism; the Android drawer is not an iOS idiom, and a three-column split or a tab bar adds a second axis of transitions for little gain |
 | 9 | The layout follows the horizontal size class, never the device idiom; the selected article, history, anchor and scroll position live in models, not in the web view | Unfolding an iPhone Duo, iPad Split View / Stage Manager and rotation are the same event to the app, and each may recreate the web view |
 | 10 | `@Observable` models live in a package target and are tested by `swift test`; Swift 6 language mode, Swift Testing, warnings as errors | "Views hold no logic" needs a testable home for the logic; `Observation` is not SwiftUI; a gate, not a report, as in drevo-android |
-| 11 | The Xcode build phase only verifies the database files and fails with a hint to run `scripts/fetch-db.sh`; CI caches them by `db.lock`; previews and UI tests run on the fixtures | A build that downloads is non-hermetic, fights Xcode's script sandboxing and fires on previews and indexing |
+| 11 | The Xcode build phase only verifies the database files and fails with a hint to run `scripts/fetch-db.sh`; CI caches them by `db.lock`; the UI tests run on those pinned files | A build that downloads is non-hermetic, fights Xcode's script sandboxing and fires on previews and indexing; every build bundles the pinned files anyway, and the pin keeps the titles the tests look for fixed |
 | 12 | Russian development region with a String Catalog; text size follows Dynamic Type; find in page through `WKWebView.isFindInteractionEnabled` | System controls appear in Russian; platform behaviour for free |
 | 13 | A plain `Drevo.xcodeproj` in git with folder-synchronized groups; no XcodeGen or Tuist | Logic lives in the package, so the project holds one thin target; synchronized folders keep file additions out of `project.pbxproj`, and no tool has to run after a clone or in CI |
 | 14 | `pravbeseda/drevo-ios` is a public GitHub repository | Public repositories run macOS jobs free, so CI can test iPhone, iPad and iPhone Duo; the client holds no secret. drevo-db became public too, so CI downloads its releases with the workflow's own token and no PAT exists |
@@ -182,7 +182,15 @@ One pull request per step, each green before the next.
       decisions for the web view, the word list selection that drives the split view) and `SettingsModel` (theme,
       font scale, list settings, one JSON value in `UserDefaults`). drevo-android checks no format on the device, and
       neither does `Library`: `BundledDatabaseTests` is the gate.
-- [ ] 5. App MVP, items 1–6 below.
+- [ ] 5a. App MVP, items 1–4 below: the split view, the word list with its title menu and search, the article web view
+      with its contents sheet, history and bookmark. Deviations: the UI tests run on the databases `db.lock` pins rather
+      than on the fixtures, as decision 11 first said; the window's history and selection are kept in `@SceneStorage`
+      and restored through `ArticleModel.start(restoring:)`; a web view created after its page was shown (the
+      split view collapsing or expanding) loads `ArticleModel.resumedPage()`, the page at its last reported scroll; the
+      split view uses the balanced style, so a portrait iPad keeps the list beside the article rather than sliding it
+      over. The iPhone Duo is not tested yet: it needs the iOS 27 simulator runtime, which neither CI's Xcode 26.6 nor
+      this checkout has.
+- [ ] 5b. App MVP, items 5–6 below: the "⋯" menu and the settings screen.
 
 ### DrevoKit (test-first, `swift test`)
 

@@ -59,6 +59,11 @@ public struct ArticleHtmlBuilder {
         return ArticlePage(title: pageTitle, html: html, opensAtAnchor: opensAtAnchor)
     }
 
+    /// The script that moves a loaded page to one of its anchors, as the contents sheet does.
+    public static func jumpScript(to anchor: String) -> String {
+        "window.location.hash = '\(jsStringContent(anchor))';"
+    }
+
     /// An anchor may come from a restored history or an imported bookmark, so it must not end the string or the
     /// script it lands in.
     private static func jsStringContent(_ value: String) -> String {

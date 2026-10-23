@@ -17,7 +17,10 @@ written into the repository is English.
   the host.
 - `Drevo/` — the app target: SwiftUI views, the `WKWebView` bridge and resources. Views hold no logic; a decision a view
   would make belongs in a model in `DrevoKit`, with a test.
-- `DrevoUITests/` — XCUITest, run on iPhone and iPad simulators.
+- `DrevoUITests/` — XCUITest, run on iPhone and iPad simulators over the databases `db.lock` pins, so their titles
+  are stable.
+- `Drevo/Resources/Web/` — the article page's stylesheets and scripts, copied from drevo-android's
+  `drevo/src/main/assets/`. The build copies every resource flat into the bundle root, which is the page's base URL.
 - `Drevo.xcodeproj` uses folder-synchronized groups: a file added under `Drevo/` or `DrevoUITests/` is in its target
   with no project edit. `project.pbxproj` changes only for build settings, phases and targets.
 
