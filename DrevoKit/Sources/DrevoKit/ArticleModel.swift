@@ -16,6 +16,12 @@ public enum LinkDecision: Equatable, Sendable {
     case openExternally(URL)
 }
 
+/// What `ArticleModel.savedWindow()` encodes.
+private struct SavedWindow: Codable {
+    var history: ArticleHistory
+    var isSelected: Bool
+}
+
 /// The article column: the page on screen, its history, and the word list selection that shows it.
 @MainActor
 @Observable
@@ -59,25 +65,26 @@ public final class ArticleModel {
         self.timeZone = timeZone
     }
 
-    /// Shows what a window saved with `savedHistory()` had on screen, selecting it when `selecting`, or else the main
-    /// page, unselected; nothing once a page is shown, as when a window's view appears again.
-    public func start(restoring saved: Data? = nil, selecting: Bool = false) async {
+    /// Shows what a window saved with `savedWindow()` had on screen, or else the main page, unselected; nothing once a
+    /// page is shown, as when a window's view appears again.
+    public func start(restoring saved: Data? = nil) async {
         guard history.current == nil else { return }
-        // A history this version cannot read, as from a later one, starts over at the main page.
-        if let saved, let restored = try? JSONDecoder().decode(ArticleHistory.self, from: saved),
-            let current = restored.current
+        // A window this version cannot read, as from a later one, starts over at the main page.
+        if let saved, let window = try? JSONDecoder().decode(SavedWindow.self, from: saved),
+            let current = window.history.current
         {
-            history = restored
-            selection = selecting ? current.articleID : nil
+            history = window.history
+            selection = window.isSelected ? current.articleID : nil
         } else {
             history.open(SpecialArticle.mainPage.rawValue)
         }
         await show()
     }
 
-    /// The history for a window to keep and hand back to `start(restoring:selecting:)`.
-    public func savedHistory() -> Data? {
-        try? JSONEncoder().encode(history)
+    /// The history and whether its article is selected, as one value for a window to keep and hand back to
+    /// `start(restoring:)`; it changes whenever `history` or `selection` does.
+    public func savedWindow() -> Data? {
+        try? JSONEncoder().encode(SavedWindow(history: history, isSelected: selection != nil))
     }
 
     /// The word list's selection changed; `nil` keeps the page for when the article column is visible again.

@@ -6,8 +6,7 @@ import SwiftUI
 struct ReaderView: View {
     @State private var wordList: WordListModel
     @State private var article: ArticleModel
-    @SceneStorage("article.history") private var savedHistory: Data?
-    @SceneStorage("article.selected") private var savedSelected = false
+    @SceneStorage("article.window") private var savedWindow: Data?
 
     init(library: Library, settings: SettingsModel) {
         let wordList = WordListModel(library: library, settings: settings)
@@ -26,9 +25,9 @@ struct ReaderView: View {
         // The list stays beside the article whenever the width allows, a portrait iPad included, instead of
         // sliding over it.
         .navigationSplitViewStyle(.balanced)
-        .task { await article.start(restoring: savedHistory, selecting: savedSelected) }
-        .onChange(of: article.history) { savedHistory = article.savedHistory() }
-        .onChange(of: article.selection) { savedSelected = article.selection != nil }
+        .task { await article.start(restoring: savedWindow) }
+        .onChange(of: article.history) { savedWindow = article.savedWindow() }
+        .onChange(of: article.selection) { savedWindow = article.savedWindow() }
     }
 
     private var selection: Binding<Int?> {

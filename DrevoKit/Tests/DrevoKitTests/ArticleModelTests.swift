@@ -123,38 +123,44 @@ struct ArticleModelTests {
         #expect(model.failure == .noArticleForDay)
     }
 
-    @Test func aSavedHistoryShowsItsPageAtItsScroll() async throws {
+    @Test func aSavedWindowShowsItsPageAtItsScroll() async throws {
         await model.select(103)
         model.recordScroll(0.25, onPage: model.pageID)
-        let saved = try #require(model.savedHistory())
+        await model.select(nil)
+        let saved = try #require(model.savedWindow())
 
         let next = ArticleModel(library: library, baseURL: base)
-        await next.start(restoring: saved, selecting: false)
+        await next.start(restoring: saved)
         #expect(next.page?.title == "ПАТЕРИК")
         #expect(next.page?.html.contains("window.scrollTo(0, 0.25 * ") == true)
         #expect(next.history == model.history)
         #expect(next.selection == nil)
     }
 
-    @Test func aHistorySavedWithItsArticleOnScreenSelectsIt() async throws {
+    @Test func aWindowSavedWithItsArticleOnScreenSelectsIt() async throws {
         await model.select(103)
-        let saved = try #require(model.savedHistory())
+        let saved = try #require(model.savedWindow())
         let next = ArticleModel(library: library, baseURL: base)
-        await next.start(restoring: saved, selecting: true)
+        await next.start(restoring: saved)
         #expect(next.selection == 103)
     }
 
-    @Test func anUnreadableSavedHistoryStartsAtTheMainPage() async {
-        await model.start(restoring: Data("not json".utf8), selecting: true)
+    @Test func anUnreadableSavedWindowStartsAtTheMainPageAndIsSavedSo() async throws {
+        await model.start(restoring: Data("not json".utf8))
         #expect(model.page?.title == "ГЛАВНАЯ СТРАНИЦА")
         #expect(model.selection == nil)
+
+        let saved = try #require(model.savedWindow())
+        let next = ArticleModel(library: library, baseURL: base)
+        await next.start(restoring: saved)
+        #expect(next.selection == nil)
     }
 
     @Test func startingAgainKeepsWhatIsShown() async throws {
         await model.select(103)
-        let saved = try #require(model.savedHistory())
+        let saved = try #require(model.savedWindow())
         await model.select(102)
-        await model.start(restoring: saved, selecting: true)
+        await model.start(restoring: saved)
         #expect(model.page?.title == "СЕРГИЙ РАДОНЕЖСКИЙ")
     }
 

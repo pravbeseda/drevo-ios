@@ -185,7 +185,7 @@ One pull request per step, each green before the next.
 - [ ] 5a. App MVP, items 1–4 below: the split view, the word list with its title menu and search, the article web view
       with its contents sheet, history and bookmark. Deviations: the UI tests run on the databases `db.lock` pins rather
       than on the fixtures, as decision 11 first said; the window's history and selection are kept in `@SceneStorage`
-      and restored through `ArticleModel.start(restoring:selecting:)`; a web view created after its page was shown (the
+      and restored through `ArticleModel.start(restoring:)`; a web view created after its page was shown (the
       split view collapsing or expanding) loads `ArticleModel.resumedPage()`, the page at its last reported scroll; the
       split view uses the balanced style, so a portrait iPad keeps the list beside the article rather than sliding it
       over. The iPhone Duo is not tested yet: it needs the iOS 27 simulator runtime, which neither CI's Xcode 26.6 nor
