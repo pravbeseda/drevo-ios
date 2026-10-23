@@ -121,4 +121,49 @@ final class ReaderTests: XCTestCase {
         backToTheList(from: "СЕРГИЙ РАДОНЕЖСКИЙ")
         XCTAssertTrue(row.waitForNonExistence(timeout: timeout))
     }
+
+    /// One menu per window: over the list on a compact width, over the article on a regular one.
+    private func openMenu() {
+        let menu = app.buttons["Меню"]
+        XCTAssertTrue(menu.waitForExistence(timeout: timeout))
+        XCTAssertEqual(app.buttons.matching(identifier: "Меню").count, 1)
+        menu.tap()
+    }
+
+    func testTheMenuOpensASpecialPage() {
+        launch()
+        openMenu()
+        app.buttons["Хронология"].tap()
+        XCTAssertTrue(app.navigationBars["ХРОНОЛОГИЯ"].waitForExistence(timeout: timeout))
+    }
+
+    func testTodayOpensTheArticleOfTheDay() {
+        launch()
+        openMenu()
+        app.buttons["Сегодня"].tap()
+        // Day articles are titled by the day and the month.
+        let day = app.navigationBars.matching(NSPredicate(format: "identifier MATCHES %@", "[0-9]+ .+")).firstMatch
+        XCTAssertTrue(day.waitForExistence(timeout: timeout))
+    }
+
+    func testAboutNamesTheBundledDatabase() {
+        launch()
+        openMenu()
+        app.buttons["О приложении"].tap()
+        let release = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "База статей, db-"))
+            .firstMatch
+        XCTAssertTrue(release.waitForExistence(timeout: timeout))
+        app.buttons["Готово"].tap()
+        XCTAssertTrue(release.waitForNonExistence(timeout: timeout))
+    }
+
+    func testSettingsOpenAndClose() {
+        launch()
+        openMenu()
+        app.buttons["Настройки"].tap()
+        XCTAssertTrue(app.navigationBars["Настройки"].waitForExistence(timeout: timeout))
+        XCTAssertTrue(app.sliders.firstMatch.exists)
+        app.buttons["Готово"].tap()
+        XCTAssertTrue(app.navigationBars["Настройки"].waitForNonExistence(timeout: timeout))
+    }
 }

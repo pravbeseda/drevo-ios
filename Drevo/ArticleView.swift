@@ -4,6 +4,9 @@ import SwiftUI
 /// The article column: the page, its contents, history and bookmark.
 struct ArticleView: View {
     let model: ArticleModel
+    let settings: SettingsModel
+    /// How far the system text size is from its default, which `settings` scales the page from.
+    @ScaledMetric(relativeTo: .body) private var systemTextScale = 1.0
     @State private var showsContents = false
     @State private var jump: AnchorJump?
 
@@ -44,8 +47,11 @@ struct ArticleView: View {
         if let failure = model.failure {
             ContentUnavailableView(failure.title, systemImage: "doc.questionmark")
         } else if model.page != nil {
-            ArticleWebView(model: model, pageID: model.pageID, jump: jump)
-                .ignoresSafeArea(edges: .bottom)
+            ArticleWebView(
+                model: model, pageID: model.pageID, jump: jump,
+                zoom: settings.textZoom(systemTextScale: systemTextScale)
+            )
+            .ignoresSafeArea(edges: .bottom)
         }
     }
 }

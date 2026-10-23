@@ -81,6 +81,11 @@ struct ArticleHtmlBuilderTests {
         #expect(ArticleHtmlBuilder.jumpScript(to: "a'b") == #"window.location.hash = 'a\'b';"#)
     }
 
+    @Test func theZoomScriptScalesTheWholePage() {
+        #expect(ArticleHtmlBuilder.zoomScript(1.5) == "document.documentElement.style.zoom = '1.5';")
+        #expect(ArticleHtmlBuilder.zoomScript(1) == "document.documentElement.style.zoom = '1.0';")
+    }
+
     @Test func calendarMovesItsYearIntoTheTitle() {
         let page = build(title: "КАЛЕНДАРЬ", body: #"<div class="year">2026</div><table></table>"#)
         #expect(page.title == "КАЛЕНДАРЬ 2026")
