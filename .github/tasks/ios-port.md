@@ -239,7 +239,11 @@ MVP:
 
 Later:
 
-- Bookmarks export / import through the Files app, validated by `BookmarksSchema`.
+- [x] Bookmarks export / import through the Files app, validated by `BookmarksSchema`
+      (pravbeseda/drevo-ios#10), in the settings screen. The export is drevo-android's `DrevoBookmarks-yyyyMMdd.db`,
+      written by `VACUUM INTO`. Deviation: an import adds the file's bookmarks to the user's, skipping one already
+      there by id or title, where drevo-android replaces them after a confirmation; nothing is lost to a wrong file, so
+      no confirmation is asked. drevo-android's "clear bookmarks" is not ported.
 - Bible translation setting (`bibleTranslate`), "rate the app" and "send feedback" links.
 
 Not ported: OBB download and licensing (the bundle holds the data), billing (dormant on Android), `volumeKeys`

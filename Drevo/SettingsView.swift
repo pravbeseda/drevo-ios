@@ -1,9 +1,13 @@
 import DrevoKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct SettingsView: View {
     @Bindable var settings: SettingsModel
+    let bookmarksFile: BookmarksFileModel
     @Environment(\.dismiss) private var dismiss
+    @State private var export: BookmarksDocument?
+    @State private var isImporting = false
 
     var body: some View {
         NavigationStack {
@@ -44,6 +48,32 @@ struct SettingsView: View {
                         }
                     }
                 }
+                Section {
+                    Button("Экспортировать…", systemImage: "square.and.arrow.up") {
+                        Task { export = await bookmarksFile.exportedFile().map(BookmarksDocument.init) }
+                    }
+                    Button("Импортировать…", systemImage: "square.and.arrow.down") { isImporting = true }
+                } header: {
+                    Text("Закладки")
+                } footer: {
+                    Text("Импорт добавляет закладки из файла к имеющимся. Файл подходит и для «Древа» на Android.")
+                }
+            }
+            .fileExporter(
+                isPresented: Binding(get: { export != nil }, set: { if !$0 { export = nil } }), document: export,
+                contentType: .database, defaultFilename: bookmarksFile.exportFileName
+            ) { _ in }
+            .fileImporter(isPresented: $isImporting, allowedContentTypes: [.data]) { result in
+                if case .success(let url) = result { Task { await bookmarksFile.importFile(at: url) } }
+            }
+            .alert(
+                bookmarksFile.outcome?.title ?? "",
+                isPresented: Binding(
+                    get: { bookmarksFile.outcome != nil }, set: { _ in bookmarksFile.dismissOutcome() }),
+                presenting: bookmarksFile.outcome
+            ) { _ in
+            } message: { outcome in
+                if let message = outcome.message { Text(message) }
             }
             .navigationTitle("Настройки")
             .navigationBarTitleDisplayMode(.inline)
@@ -63,6 +93,46 @@ extension SettingsModel.Theme {
         case .system: nil
         case .light: .light
         case .dark: .dark
+        }
+    }
+}
+
+/// The bookmarks file handed to the system's save dialog.
+struct BookmarksDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.database] }
+
+    let data: Data
+
+    init(data: Data) {
+        self.data = data
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        data = configuration.file.regularFileContents ?? Data()
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
+}
+
+extension BookmarksFileModel.Outcome {
+    var title: String {
+        switch self {
+        case .imported(0): "Новых закладок нет"
+        case .imported: "Закладки добавлены"
+        case .notBookmarks: "Это не файл закладок"
+        case .importFailed: "Не удалось импортировать закладки"
+        case .exportFailed: "Не удалось экспортировать закладки"
+        }
+    }
+
+    var message: String? {
+        switch self {
+        case .imported(0): "Все закладки из файла уже есть."
+        case .imported(let count): "Добавлено закладок: \(count)."
+        case .notBookmarks: "Выберите файл, сохранённый экспортом закладок «Древа»."
+        case .importFailed, .exportFailed: nil
         }
     }
 }

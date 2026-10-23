@@ -105,6 +105,15 @@ struct ArticleModelTests {
         #expect(changes == 2)
     }
 
+    @Test func theShownArticleRereadsItsBookmarkWhenBookmarksChangeElsewhere() async throws {
+        await model.select(102)
+        try await library.setBookmark(true, id: 102, title: "СЕРГИЙ РАДОНЕЖСКИЙ")
+
+        await model.bookmarksChanged()
+
+        #expect(model.isBookmarked)
+    }
+
     @Test func anUnknownArticleIsAFailure() async {
         await model.select(999)
         #expect(model.failure == .notFound)

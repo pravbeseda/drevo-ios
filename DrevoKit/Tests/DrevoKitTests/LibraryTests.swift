@@ -34,4 +34,15 @@ struct LibraryTests {
         try await library.setBookmark(false, id: 101, title: "АВВА")
         #expect(try await !library.isBookmarked(id: 101, title: "АВВА"))
     }
+
+    @Test func exportsBookmarksThatAnotherLibraryMerges() async throws {
+        let library = try Fixtures.library()
+        try await library.setBookmark(true, id: 101, title: "АВВА")
+        let file = Fixtures.scratchURL()
+        try await library.exportBookmarks(to: file)
+
+        let other = try Fixtures.library()
+        #expect(try await other.mergeBookmarks(from: file) == 1)
+        #expect(try await other.isBookmarked(id: 101, title: "АВВА"))
+    }
 }
