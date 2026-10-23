@@ -64,6 +64,12 @@ public struct ArticleHtmlBuilder {
         "window.location.hash = '\(jsStringContent(anchor))';"
     }
 
+    /// The script that sets the page's text size; CSS zoom reflows the page to the screen's width, where the web
+    /// view's own page zoom would push it past the edge.
+    public static func zoomScript(_ zoom: Double) -> String {
+        "document.documentElement.style.zoom = '\(zoom)';"
+    }
+
     /// An anchor may come from a restored history or an imported bookmark, so it must not end the string or the
     /// script it lands in.
     private static func jsStringContent(_ value: String) -> String {

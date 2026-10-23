@@ -9,6 +9,7 @@ struct ArticleWebView: UIViewRepresentable {
     /// Passed in rather than read in `updateUIView`, so that SwiftUI updates the web view when it changes.
     let pageID: Int
     let jump: AnchorJump?
+    let zoom: Double
 
     func makeCoordinator() -> Coordinator {
         Coordinator(model: model)
@@ -16,6 +17,8 @@ struct ArticleWebView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> WKWebView {
         let configuration = WKWebViewConfiguration()
+        // iPad's default desktop mode fits the page to the width, which undoes the text zoom.
+        configuration.defaultWebpagePreferences.preferredContentMode = .mobile
         configuration.userContentController.add(context.coordinator, name: ArticleHtmlBuilder.messageHandler)
         let webView = WKWebView(frame: .zero, configuration: configuration)
         webView.navigationDelegate = context.coordinator
@@ -29,6 +32,15 @@ struct ArticleWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         let coordinator = context.coordinator
         coordinator.openURL = context.environment.openURL
+        if coordinator.zoom != zoom {
+            coordinator.zoom = zoom
+            // Every page to come gets it before its load script restores the scroll; the page shown, at once.
+            let script = ArticleHtmlBuilder.zoomScript(zoom)
+            let scripts = webView.configuration.userContentController
+            scripts.removeAllUserScripts()
+            scripts.addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+            webView.evaluateJavaScript(script)
+        }
         if coordinator.requestedPageID != pageID, let page = model.resumedPage() {
             coordinator.requestedPageID = pageID
             coordinator.pendingLoad = webView.loadHTMLString(page.html, baseURL: model.baseURL)
@@ -45,6 +57,7 @@ struct ArticleWebView: UIViewRepresentable {
         var requestedPageID: Int?
         var pendingLoad: WKNavigation?
         var lastJump: AnchorJump?
+        var zoom: Double?
         /// The page whose document is in the web view: the previous one keeps reporting scrolls until the next one
         /// commits, and those reports must not count for the next.
         private var committedPageID: Int?

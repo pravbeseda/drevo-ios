@@ -34,7 +34,8 @@ The app bundles the drevo-db release that `db.lock` pins: `main` and `patch` und
 every `db.lock` change**; it downloads only what is missing or stale and checks each file against its SHA-256 in
 `db.lock`. The app target's first build phase runs it with `--check`, which never downloads: a missing or stale file
 fails the build with that instruction. A new database is a `db.lock` change — the release tag, the release holding
-`main`, and both hashes from that release's `SHA256SUMS` — followed by a fetch.
+`main`, and both hashes from that release's `SHA256SUMS` — followed by a fetch. The symlink
+`Drevo/Resources/db.lock` bundles the file itself, so the About screen names the release.
 
 `DrevoKit`'s tests run on drevo-db's reference build, copied into `DrevoKit/Tests/DrevoKitTests/Fixtures/` with a
 README naming the drevo-db commit; copy it again whenever drevo-db's fixtures change. `FormatFixturesTests` assembles

@@ -11,6 +11,7 @@ struct DrevoApp: App {
             switch library {
             case .success(let library):
                 ReaderView(library: library, settings: settings)
+                    .preferredColorScheme(settings.theme.colorScheme)
             case .failure:
                 ContentUnavailableView(
                     "Не удалось открыть энциклопедию", systemImage: "exclamationmark.triangle",

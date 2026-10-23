@@ -42,6 +42,12 @@ public final class SettingsModel {
         set { stored.fontScale = min(max(newValue, Self.fontScales.lowerBound), Self.fontScales.upperBound) }
     }
 
+    /// The article page's zoom: `fontScale` on top of the system text size, given as the body text style's size in
+    /// points, whose default is 17.
+    public func textZoom(bodySize: Double) -> Double {
+        fontScale * bodySize / 17
+    }
+
     public var list: ListSettings {
         get { stored.list }
         set { stored.list = newValue }
