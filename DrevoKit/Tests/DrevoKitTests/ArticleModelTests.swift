@@ -123,23 +123,39 @@ struct ArticleModelTests {
         #expect(model.failure == .noArticleForDay)
     }
 
-    @Test func aRestoredHistoryShowsItsPageAtItsScroll() async {
-        var history = ArticleHistory()
-        history.open(103)
-        history.recordScroll(0.25)
+    @Test func aSavedHistoryShowsItsPageAtItsScroll() async throws {
+        await model.select(103)
+        model.recordScroll(0.25, onPage: model.pageID)
+        let saved = try #require(model.savedHistory())
 
-        await model.restore(history, selecting: false)
-        #expect(model.page?.title == "ПАТЕРИК")
-        #expect(model.page?.html.contains("window.scrollTo(0, 0.25 * ") == true)
-        #expect(model.history == history)
+        let next = ArticleModel(library: library, baseURL: base)
+        await next.start(restoring: saved, selecting: false)
+        #expect(next.page?.title == "ПАТЕРИК")
+        #expect(next.page?.html.contains("window.scrollTo(0, 0.25 * ") == true)
+        #expect(next.history == model.history)
+        #expect(next.selection == nil)
+    }
+
+    @Test func aHistorySavedWithItsArticleOnScreenSelectsIt() async throws {
+        await model.select(103)
+        let saved = try #require(model.savedHistory())
+        let next = ArticleModel(library: library, baseURL: base)
+        await next.start(restoring: saved, selecting: true)
+        #expect(next.selection == 103)
+    }
+
+    @Test func anUnreadableSavedHistoryStartsAtTheMainPage() async {
+        await model.start(restoring: Data("not json".utf8), selecting: true)
+        #expect(model.page?.title == "ГЛАВНАЯ СТРАНИЦА")
         #expect(model.selection == nil)
     }
 
-    @Test func aHistoryRestoredWithItsArticleOnScreenSelectsIt() async {
-        var history = ArticleHistory()
-        history.open(103)
-        await model.restore(history, selecting: true)
-        #expect(model.selection == 103)
+    @Test func startingAgainKeepsWhatIsShown() async throws {
+        await model.select(103)
+        let saved = try #require(model.savedHistory())
+        await model.select(102)
+        await model.start(restoring: saved, selecting: true)
+        #expect(model.page?.title == "СЕРГИЙ РАДОНЕЖСКИЙ")
     }
 
     @Test func aScrollFromAPageNoLongerShownIsIgnored() async {

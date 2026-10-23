@@ -26,15 +26,8 @@ struct ReaderView: View {
         // The list stays beside the article whenever the width allows, a portrait iPad included, instead of
         // sliding over it.
         .navigationSplitViewStyle(.balanced)
-        .task {
-            guard article.history.current == nil else { return }
-            if let data = savedHistory, let history = try? JSONDecoder().decode(ArticleHistory.self, from: data) {
-                await article.restore(history, selecting: savedSelected)
-            } else {
-                await article.start()
-            }
-        }
-        .onChange(of: article.history) { savedHistory = try? JSONEncoder().encode(article.history) }
+        .task { await article.start(restoring: savedHistory, selecting: savedSelected) }
+        .onChange(of: article.history) { savedHistory = article.savedHistory() }
         .onChange(of: article.selection) { savedSelected = article.selection != nil }
     }
 

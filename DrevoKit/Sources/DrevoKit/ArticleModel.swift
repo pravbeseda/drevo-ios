@@ -59,11 +59,25 @@ public final class ArticleModel {
         self.timeZone = timeZone
     }
 
-    /// Shows the main page when nothing else is shown yet, without selecting it.
-    public func start() async {
+    /// Shows what a window saved with `savedHistory()` had on screen, selecting it when `selecting`, or else the main
+    /// page, unselected; nothing once a page is shown, as when a window's view appears again.
+    public func start(restoring saved: Data? = nil, selecting: Bool = false) async {
         guard history.current == nil else { return }
-        history.open(SpecialArticle.mainPage.rawValue)
+        // A history this version cannot read, as from a later one, starts over at the main page.
+        if let saved, let restored = try? JSONDecoder().decode(ArticleHistory.self, from: saved),
+            let current = restored.current
+        {
+            history = restored
+            selection = selecting ? current.articleID : nil
+        } else {
+            history.open(SpecialArticle.mainPage.rawValue)
+        }
         await show()
+    }
+
+    /// The history for a window to keep and hand back to `start(restoring:selecting:)`.
+    public func savedHistory() -> Data? {
+        try? JSONEncoder().encode(history)
     }
 
     /// The word list's selection changed; `nil` keeps the page for when the article column is visible again.
@@ -119,13 +133,6 @@ public final class ArticleModel {
     public func recordScroll(_ position: Double, onPage id: Int) {
         guard id == pageID, id == loads, page != nil else { return }
         history.recordScroll(position)
-    }
-
-    /// Shows a history saved with the scene; `selecting` restores an article column that was on screen.
-    public func restore(_ history: ArticleHistory, selecting: Bool) async {
-        self.history = history
-        selection = selecting ? history.current?.articleID : nil
-        await show()
     }
 
     /// The page on screen at the scroll it was last reported at, for a web view created after the page was shown,
