@@ -128,6 +128,13 @@ public final class ArticleModel {
         await show()
     }
 
+    /// The page on screen at the scroll it was last reported at, for a web view created after the page was shown,
+    /// as when the split view collapses or expands; `nil` when there is none.
+    public func resumedPage() -> ArticlePage? {
+        guard let article = shown, let current = history.current else { return nil }
+        return page(of: article, at: current)
+    }
+
     /// Taps are written one after another, in the order they came, so the model always ends where the file does.
     public func toggleBookmark() async {
         // The tap belongs to the article on screen now, not to whatever is shown when its turn comes.
@@ -196,14 +203,18 @@ public final class ArticleModel {
             fail(.notFound)
             return
         }
-        let builder = ArticleHtmlBuilder(today: now(), timeZone: timeZone)
-        page = builder.build(title: article.title, body: article.body, anchor: target.anchor, scroll: target.scroll)
+        page = page(of: article, at: target)
         pageID = load
         contents = article.contents
         isBookmarked = bookmarked
         bookmarkFailed = false
         shown = article
         failure = nil
+    }
+
+    private func page(of article: Article, at target: ArticleHistory.Page) -> ArticlePage {
+        ArticleHtmlBuilder(today: now(), timeZone: timeZone)
+            .build(title: article.title, body: article.body, anchor: target.anchor, scroll: target.scroll)
     }
 
     private func fail(_ failure: Failure) {

@@ -73,6 +73,14 @@ struct ArticleHtmlBuilderTests {
         #expect(build(anchor: "%D0%B3%D0%BB.2").html.contains("window.location.hash = '%D0%B3%D0%BB.2'; "))
     }
 
+    @Test func theJumpScriptMovesToTheAnchor() {
+        #expect(ArticleHtmlBuilder.jumpScript(to: "t2") == "window.location.hash = 't2';")
+    }
+
+    @Test func aJumpAnchorCannotCloseItsStringLiteral() {
+        #expect(ArticleHtmlBuilder.jumpScript(to: "a'b") == #"window.location.hash = 'a\'b';"#)
+    }
+
     @Test func calendarMovesItsYearIntoTheTitle() {
         let page = build(title: "КАЛЕНДАРЬ", body: #"<div class="year">2026</div><table></table>"#)
         #expect(page.title == "КАЛЕНДАРЬ 2026")

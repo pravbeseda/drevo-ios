@@ -182,7 +182,15 @@ One pull request per step, each green before the next.
       decisions for the web view, the word list selection that drives the split view) and `SettingsModel` (theme,
       font scale, list settings, one JSON value in `UserDefaults`). drevo-android checks no format on the device, and
       neither does `Library`: `BundledDatabaseTests` is the gate.
-- [ ] 5. App MVP, items 1–6 below.
+- [ ] 5a. App MVP, items 1–4 below: the split view, the word list with its title menu and search, the article web view
+      with its contents sheet, history and bookmark. Deviations: the UI tests run on the databases `db.lock` pins rather
+      than on the fixtures (decision 11), since every build bundles those anyway and the pin keeps their titles fixed;
+      the window's history and selection are kept in `@SceneStorage` and restored through `ArticleModel.restore`; a web
+      view created after its page was shown (the split view collapsing or expanding) loads `ArticleModel.resumedPage()`,
+      the page at its last reported scroll; the split view uses the balanced style, so a portrait iPad keeps the list
+      beside the article rather than sliding it over. The iPhone Duo is not tested yet: it needs the iOS 27 simulator
+      runtime, which neither CI's Xcode 26.6 nor this checkout has.
+- [ ] 5b. App MVP, items 5–6 below: the "⋯" menu and the settings screen.
 
 ### DrevoKit (test-first, `swift test`)
 

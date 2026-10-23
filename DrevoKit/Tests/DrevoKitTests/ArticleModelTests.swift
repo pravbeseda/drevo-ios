@@ -77,6 +77,19 @@ struct ArticleModelTests {
         #expect(model.page?.title == "СЕРГИЙ РАДОНЕЖСКИЙ")
     }
 
+    @Test func aNewWebViewResumesThePageWhereItWasLeft() async {
+        await model.select(101)
+        model.recordScroll(0.5, onPage: model.pageID)
+        #expect(model.page?.html.contains("window.scrollTo") == false)
+        #expect(model.resumedPage()?.html.contains("window.scrollTo(0, 0.5 * ") == true)
+        #expect(model.resumedPage()?.title == "АВВА")
+    }
+
+    @Test func aFailedPageHasNothingToResume() async {
+        await model.select(999)
+        #expect(model.resumedPage() == nil)
+    }
+
     @Test func togglingTheBookmarkStoresItAndReports() async throws {
         var changes = 0
         model.onBookmarksChanged = { changes += 1 }

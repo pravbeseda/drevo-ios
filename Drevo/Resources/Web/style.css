@@ -1,0 +1,194 @@
+body {
+	font-family: Verdana, Arial, sans-serif;
+	font-size: medium;
+	color: black
+}
+
+h1 {
+	color: #666666;
+	font-size: 22px;
+	text-align: center;
+	margin-top: 10px;
+	margin-bottom: 5px;
+	line-height: normal;
+}
+
+h2 {
+	color: #666666;
+	font-size: 120%;
+	text-align: left;
+	margin-top: 10px;
+	margin-bottom: 5px;
+}
+
+h3 {
+	color: #666666;
+	font-size: 110%;
+	text-align: left;
+	margin-top: 10px;
+	margin-bottom: 5px;
+	border-bottom: thin solid gray;
+}
+
+td,th {
+	vertical-align: top;
+	font-weight: normal;
+}
+
+a {
+	color: #00019b;
+}
+
+a.external:link,a.external:visited,a.external:active {
+	color: #07674B;
+}
+
+.pic {
+	float: right;
+	clear: right;
+	margin: 5px 0 5px 10px;
+	border: none;
+	background-color: #EEE;
+}
+
+.picimage {
+	text-align: center;
+}
+
+.picdesc {
+	text-align: center;
+	padding: 5px;
+	font-size: 80%;
+}
+
+div.partpic {
+	float: left;
+	width: 75px;
+	clear: left;
+	padding: 6px;
+}
+
+.noborder {
+	text-decoration: none;
+	border: none;
+}
+
+#prev {
+	float: left;
+	font-size: 80%;
+}
+
+#next {
+	float: right;
+	font-size: 80%;
+}
+
+.bold {
+	font-weight: bold;
+}
+
+.italic {
+	font-style: italic;
+}
+
+/* ===== Calendar =====
+ * Layout taken from drevo-yii css/calendar.css, which the reworked export
+ * needs. The colours below are this app's own, unchanged — only re-scoped
+ * under .calendar, the way the exported markup now expects. */
+
+.calendar-columns {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: 24px;
+	margin-top: 40px;
+}
+
+.calendar-columns > .calendar-grid {
+	flex: 3 1 520px;
+}
+
+.calendar-columns > .calendar-legend {
+	flex: 1 1 400px;
+	max-width: 560px;
+}
+
+.calendar-legend {
+	text-align: left;
+}
+
+/* Fixed 198px tracks, not 1fr: a month is a fixed size, so the leftover width
+ * goes to the outer edges instead of between the months. On a phone this falls
+ * to one centred column without a media query. */
+.calendar-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 198px);
+	justify-content: center;
+	gap: 32px;
+}
+
+.calendar table.month {
+	table-layout: fixed;
+	width: 198px;
+	margin-left: auto;
+	margin-right: auto;
+	padding: 3px;
+}
+
+.calendar caption.month {
+	font-weight: bold;
+	text-align: center;
+}
+
+.calendar td.day {
+	text-align: right;
+	font-size: 90%;
+	padding: 1px;
+}
+
+.calendar th.day {
+	text-align: right;
+	font-size: 70%;
+	color: #999999;
+	padding: 5px;
+}
+
+/* Day links carry no class, so they keep falling through to the plain `a`
+ * colour, as they did before the export was reworked. */
+.calendar a:link, .calendar a:visited, .calendar a:active {
+	text-decoration: none;
+}
+
+.calendar .today {
+	border: 1px solid #4444FF;
+}
+
+.calendar .holyday {
+	color: #FF0000;
+}
+
+.calendar .holyday a:link, .calendar .holyday a:visited, .calendar .holyday a:active {
+	color: #FF0000;
+}
+
+.calendar .weekend a:link, .calendar .weekend a:visited, .calendar .weekend a:active {
+	color: #990000;
+}
+
+.calendar .post {
+	background: #E0F0E0;
+}
+
+.calendar .post a:link, .calendar .post a:visited, .calendar .post a:active {
+	background: #E0F0E0;
+}
+
+/* ===== end Calendar ===== */
+
+.BibleRus, .BibleCsl {
+	background: #EFEFEF;
+}
+
+span.verse {
+    color: blue;
+}
