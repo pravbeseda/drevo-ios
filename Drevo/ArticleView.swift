@@ -5,8 +5,8 @@ import SwiftUI
 struct ArticleView: View {
     let model: ArticleModel
     let settings: SettingsModel
-    /// The system's body text size, which `settings` scales the page from.
-    @ScaledMetric(relativeTo: .body) private var bodySize = 17.0
+    /// How far the system text size is from its default, which `settings` scales the page from.
+    @ScaledMetric(relativeTo: .body) private var systemTextScale = 1.0
     @State private var showsContents = false
     @State private var jump: AnchorJump?
 
@@ -48,7 +48,8 @@ struct ArticleView: View {
             ContentUnavailableView(failure.title, systemImage: "doc.questionmark")
         } else if model.page != nil {
             ArticleWebView(
-                model: model, pageID: model.pageID, jump: jump, zoom: settings.textZoom(bodySize: bodySize)
+                model: model, pageID: model.pageID, jump: jump,
+                zoom: settings.textZoom(systemTextScale: systemTextScale)
             )
             .ignoresSafeArea(edges: .bottom)
         }

@@ -37,10 +37,11 @@ struct SettingsModelTests {
 
     @Test func theTextZoomScalesTheSystemTextSize() {
         let settings = SettingsModel(defaults: defaults)
-        #expect(settings.textZoom(bodySize: 17) == 1)
-        #expect(settings.textZoom(bodySize: 23) == 23.0 / 17)
+        #expect(settings.textZoom(systemTextScale: 1) == 1)
+        #expect(settings.textZoom(systemTextScale: 1.25) == 1.25)
         settings.fontScale = 1.5
-        #expect(settings.textZoom(bodySize: 17) == 1.5)
+        #expect(settings.textZoom(systemTextScale: 1) == 1.5)
+        #expect(settings.textZoom(systemTextScale: 1.25) == 1.875)
     }
 
     @Test func unreadableStoredSettingsFallBackToTheDefaults() {
