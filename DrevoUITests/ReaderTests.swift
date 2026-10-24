@@ -193,6 +193,19 @@ final class ReaderTests: XCTestCase {
         guard isRegularWidth else { return }
         pickBibleTranslations("Русский и церковнославянский")
         XCTAssertTrue(cslToggle("Скрыть").waitForExistence(timeout: timeout))
+
+        // The page's own toggle holds while only the font size changes; it ends where it began.
+        cslToggle("Скрыть").tap()
+        XCTAssertTrue(cslToggle("Показать").waitForExistence(timeout: timeout))
+        openMenu()
+        app.buttons["Настройки"].tap()
+        let slider = app.sliders.firstMatch
+        XCTAssertTrue(slider.waitForExistence(timeout: timeout))
+        slider.adjust(toNormalizedSliderPosition: 0.4)
+        slider.adjust(toNormalizedSliderPosition: 0.2)
+        app.buttons["Готово"].tap()
+        XCTAssertFalse(cslToggle("Скрыть").waitForExistence(timeout: 3))
+        XCTAssertTrue(cslToggle("Показать").exists)
     }
 
     func testSettingsOpenAndClose() {
