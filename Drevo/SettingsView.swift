@@ -62,9 +62,9 @@ struct SettingsView: View {
             .fileExporter(
                 isPresented: Binding(get: { export != nil }, set: { if !$0 { export = nil } }), document: export,
                 contentType: .database, defaultFilename: bookmarksFile.exportFileName
-            ) { _ in }
+            ) { bookmarksFile.exportSaved($0) }
             .fileImporter(isPresented: $isImporting, allowedContentTypes: [.data]) { result in
-                if case .success(let url) = result { Task { await bookmarksFile.importFile(at: url) } }
+                Task { await bookmarksFile.importFile(result) }
             }
             .alert(
                 bookmarksFile.outcome?.title ?? "",

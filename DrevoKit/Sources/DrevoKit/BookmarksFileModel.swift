@@ -48,8 +48,20 @@ public final class BookmarksFileModel {
         }
     }
 
+    /// What the system's save dialog reports; only a failure other than a cancel becomes an outcome.
+    public func exportSaved(_ result: Result<URL, any Error>) {
+        if case .failure(let error) = result, !Self.isCancel(error) { outcome = .exportFailed }
+    }
+
     /// Adds the bookmarks of a file the user picked, which may lie outside the app's sandbox.
-    public func importFile(at url: URL) async {
+    public func importFile(_ picked: Result<URL, any Error>) async {
+        let url: URL
+        do {
+            url = try picked.get()
+        } catch {
+            if !Self.isCancel(error) { outcome = .importFailed }
+            return
+        }
         let isScoped = url.startAccessingSecurityScopedResource()
         defer { if isScoped { url.stopAccessingSecurityScopedResource() } }
         do {
@@ -65,5 +77,9 @@ public final class BookmarksFileModel {
 
     public func dismissOutcome() {
         outcome = nil
+    }
+
+    private static func isCancel(_ error: any Error) -> Bool {
+        (error as? CocoaError)?.code == .userCancelled
     }
 }

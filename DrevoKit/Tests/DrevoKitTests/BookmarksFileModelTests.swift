@@ -39,12 +39,33 @@ struct BookmarksFileModelTests {
         #expect(model.outcome == nil)
     }
 
+    @Test func aSaveTheSystemReportsFailedIsAFailedExport() {
+        model.exportSaved(.failure(CocoaError(.fileWriteOutOfSpace)))
+        #expect(model.outcome == .exportFailed)
+    }
+
+    @Test func aSavedOrCancelledExportShowsNothing() {
+        model.exportSaved(.success(Fixtures.scratchURL()))
+        model.exportSaved(.failure(CocoaError(.userCancelled)))
+        #expect(model.outcome == nil)
+    }
+
+    @Test func aPickTheSystemReportsFailedIsAFailedImport() async {
+        await model.importFile(.failure(CocoaError(.fileReadNoPermission)))
+        #expect(model.outcome == .importFailed)
+    }
+
+    @Test func aCancelledPickShowsNothing() async {
+        await model.importFile(.failure(CocoaError(.userCancelled)))
+        #expect(model.outcome == nil)
+    }
+
     @Test func importingAddsTheFilesBookmarksAndReports() async throws {
         var changes = 0
         model.onBookmarksChanged = { changes += 1 }
         try await library.setBookmark(true, id: 101, title: "АВВА")
 
-        await model.importFile(at: try bookmarksFile([(101, "АВВА"), (102, "СЕРГИЙ РАДОНЕЖСКИЙ")]))
+        await model.importFile(.success(try bookmarksFile([(101, "АВВА"), (102, "СЕРГИЙ РАДОНЕЖСКИЙ")])))
 
         #expect(model.outcome == .imported(count: 1))
         #expect(try await library.isBookmarked(id: 102, title: "СЕРГИЙ РАДОНЕЖСКИЙ"))
@@ -56,7 +77,7 @@ struct BookmarksFileModelTests {
         model.onBookmarksChanged = { changes += 1 }
         try await library.setBookmark(true, id: 101, title: "АВВА")
 
-        await model.importFile(at: try bookmarksFile([(101, "АВВА")]))
+        await model.importFile(.success(try bookmarksFile([(101, "АВВА")])))
 
         #expect(model.outcome == .imported(count: 0))
         #expect(changes == 0)
@@ -66,7 +87,7 @@ struct BookmarksFileModelTests {
         let url = Fixtures.scratchURL()
         try SQLiteDatabase(writableAt: url).execute("CREATE TABLE notes(text TEXT); PRAGMA user_version = 2")
 
-        await model.importFile(at: url)
+        await model.importFile(.success(url))
 
         #expect(model.outcome == .notBookmarks)
     }
@@ -75,13 +96,13 @@ struct BookmarksFileModelTests {
         let url = Fixtures.scratchURL()
         try Data("not a database".utf8).write(to: url)
 
-        await model.importFile(at: url)
+        await model.importFile(.success(url))
 
         #expect(model.outcome == .importFailed)
     }
 
     @Test func theOutcomeIsDismissed() async throws {
-        await model.importFile(at: try bookmarksFile([]))
+        await model.importFile(.success(try bookmarksFile([])))
         model.dismissOutcome()
         #expect(model.outcome == nil)
     }
