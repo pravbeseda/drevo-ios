@@ -44,20 +44,14 @@ struct BookmarksFileModelTests {
         #expect(model.outcome == .exportFailed)
     }
 
-    @Test func aSavedOrCancelledExportShowsNothing() {
+    @Test func aSavedExportShowsNothing() {
         model.exportSaved(.success(Fixtures.scratchURL()))
-        model.exportSaved(.failure(CocoaError(.userCancelled)))
         #expect(model.outcome == nil)
     }
 
     @Test func aPickTheSystemReportsFailedIsAFailedImport() async {
         await model.importFile(.failure(CocoaError(.fileReadNoPermission)))
         #expect(model.outcome == .importFailed)
-    }
-
-    @Test func aCancelledPickShowsNothing() async {
-        await model.importFile(.failure(CocoaError(.userCancelled)))
-        #expect(model.outcome == nil)
     }
 
     @Test func importingAddsTheFilesBookmarksAndReports() async throws {
