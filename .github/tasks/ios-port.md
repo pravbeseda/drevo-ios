@@ -245,9 +245,10 @@ Later:
       written by `VACUUM INTO`. Deviation: an import adds the file's bookmarks to the user's, skipping one already
       there by id or title, where drevo-android replaces them after a confirmation; nothing is lost to a wrong file, so
       no confirmation is asked. drevo-android's "clear bookmarks" is not ported.
-- [x] Bible translation setting (`bibleTranslate`) in the settings screen: both translations, Russian only or Church
-      Slavonic only. Deviation: the page sets the chosen state through `ArticleHtmlBuilder.bibleScript` rather than
-      calling `common.js`'s toggles, so the setting applies to the article already open, as the font size does.
+- [x] Bible translation setting (`bibleTranslate`, pravbeseda/drevo-ios#12) in the settings screen: both translations,
+      Russian only or Church Slavonic only. Deviation: the page sets the chosen state through
+      `ArticleHtmlBuilder.bibleScript` rather than calling `common.js`'s toggles, so the setting applies to the
+      article already open, as the font size does.
 - "Rate the app" link: waits for the App Store record, as its link needs the app's id.
 - "Send feedback" link: deferred.
 
