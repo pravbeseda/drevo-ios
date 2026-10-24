@@ -5,6 +5,9 @@ public struct UnsupportedBookmarks: Error, Equatable {
     public let userVersion: Int
 }
 
+/// A file offered for import that is no bookmarks file this app can read.
+public struct NotBookmarks: Error, Equatable {}
+
 /// The bookmarks file's shape, shared with drevo-android's `bookmarks2.db`: a `tblSlovnik(_id, title)` table that
 /// mirrors the patch index, so the word list runs the same query over both, and a file moves between the two apps.
 enum BookmarksSchema {
@@ -55,6 +58,43 @@ public struct BookmarksStore {
 
     public func contains(id: Int, title: String) throws -> Bool {
         try run("SELECT 1 FROM tblSlovnik WHERE _id = ? OR title = ? LIMIT 1", id: id, title: title)
+    }
+
+    /// Writes every bookmark to a new file at `url`, one consistent copy that drevo-android can import too.
+    public func export(to url: URL) throws {
+        let statement = try database.prepare("VACUUM INTO ?")
+        try statement.bind(url.path, at: 1)
+        _ = try statement.step()
+    }
+
+    /// Adds the bookmarks of the file at `url` and keeps every one this store has: one matching by id or by title
+    /// is already here. Returns how many were added.
+    public func merge(from url: URL) throws -> Int {
+        let other = try SQLiteDatabase(readOnlyAt: url)
+        guard try BookmarksSchema.accepts(other) else { throw NotBookmarks() }
+        let rows = try other.prepare("SELECT _id, title FROM tblSlovnik WHERE title IS NOT NULL")
+        let before = try count()
+        try database.execute("BEGIN")
+        do {
+            let insert = try database.prepare("INSERT OR IGNORE INTO tblSlovnik(_id, title) VALUES (?, ?)")
+            while try rows.step() {
+                try insert.bind(rows.int(at: 0), at: 1)
+                try insert.bind(rows.text(at: 1) ?? "", at: 2)
+                _ = try insert.step()
+                try insert.reset()
+            }
+            try database.execute("COMMIT")
+        } catch {
+            try? database.execute("ROLLBACK")
+            throw error
+        }
+        return try count() - before
+    }
+
+    private func count() throws -> Int {
+        let statement = try database.prepare("SELECT count(*) FROM tblSlovnik")
+        _ = try statement.step()
+        return statement.int(at: 0)
     }
 
     @discardableResult

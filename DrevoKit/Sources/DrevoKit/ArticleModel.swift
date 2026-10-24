@@ -167,6 +167,15 @@ public final class ArticleModel {
         bookmarkFailed = false
     }
 
+    /// Bookmarks changed outside this model, as an import does: rereads the shown article's.
+    public func bookmarksChanged() async {
+        guard let article = shown,
+            let isOn = try? await library.isBookmarked(id: article.id, title: article.title),
+            article == shown
+        else { return }
+        isBookmarked = isOn
+    }
+
     private func writeBookmarkToggle(of article: Article) async {
         do {
             let isOn = try await library.toggleBookmark(id: article.id, title: article.title)

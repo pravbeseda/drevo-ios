@@ -7,6 +7,7 @@ struct ReaderView: View {
     let settings: SettingsModel
     @State private var wordList: WordListModel
     @State private var article: ArticleModel
+    @State private var bookmarksFile: BookmarksFileModel
     @State private var sheet: ReaderSheet?
     @SceneStorage("article.window") private var savedWindow: Data?
     /// Read here rather than in a column, whose own size class a split view may narrow.
@@ -17,8 +18,16 @@ struct ReaderView: View {
         let wordList = WordListModel(library: library, settings: settings)
         let article = ArticleModel(library: library, baseURL: Bundle.main.resourceURL!)
         article.onBookmarksChanged = { Task { await wordList.bookmarksChanged() } }
+        let bookmarksFile = BookmarksFileModel(library: library)
+        bookmarksFile.onBookmarksChanged = {
+            Task {
+                await wordList.bookmarksChanged()
+                await article.bookmarksChanged()
+            }
+        }
         _wordList = State(initialValue: wordList)
         _article = State(initialValue: article)
+        _bookmarksFile = State(initialValue: bookmarksFile)
     }
 
     var body: some View {
@@ -34,7 +43,7 @@ struct ReaderView: View {
         .navigationSplitViewStyle(.balanced)
         .sheet(item: $sheet) { sheet in
             switch sheet {
-            case .settings: SettingsView(settings: settings)
+            case .settings: SettingsView(settings: settings, bookmarksFile: bookmarksFile)
             case .about: AboutView()
             }
         }

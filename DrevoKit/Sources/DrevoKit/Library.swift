@@ -42,6 +42,15 @@ public actor Library {
         return isOn
     }
 
+    func exportBookmarks(to url: URL) throws {
+        try bookmarks.export(to: url)
+    }
+
+    /// Returns how many bookmarks were added.
+    func mergeBookmarks(from url: URL) throws -> Int {
+        try bookmarks.merge(from: url)
+    }
+
     func setBookmark(_ isOn: Bool, id: Int, title: String) throws {
         if isOn {
             try bookmarks.add(id: id, title: title)
