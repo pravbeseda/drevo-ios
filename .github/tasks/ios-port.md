@@ -27,6 +27,7 @@ in drevo-db and drevo-android; this plan moved here from drevo-android's `.githu
 | 15 | Bundle identifier `ru.drevoinfo`, display name «Древо» | The same identifier as the Android package; it is fixed only when the App Store Connect record is created, so a clash found then costs nothing |
 | 16 | Themes: system (default) / light / dark; dark is `styleblack.css` over the system dark appearance | Android's dark and black differ only in the chrome's grey, and iOS dark mode is already black; a custom grey palette would not reach system menus and sheets |
 | 17 | The `@Observable` models live in the `DrevoKit` target itself; a `Library` actor owns the databases and does their work off the main actor | The models are the core's only consumer, so its types stay internal and the public API is what the views need; a second consumer (a widget) is the moment to split targets |
+| 18 | A new database reaches users as an app release: `db.lock` bumped, built and uploaded by an automated release job; the app downloads nothing | drevo-db releases monthly, App Store updates install themselves, and a review of a day or two is no cost at that rate; downloading the `patch` in the app (the `main` still through a release) stays the fallback if review delays start to matter, with the bundled pair as its safe copy |
 
 ## Current state
 
@@ -259,8 +260,20 @@ Not ported: OBB download and licensing (the bundle holds the data), billing (dor
 ### Distribution (after MVP)
 
 Requires an Apple Developer Program membership. TestFlight first, then App Store review. Release process mirrors
-drevo-android: bump `db.lock` to the new drevo-db release, build, upload. Automating it (Xcode Cloud or fastlane in CI)
-is decided when it starts.
+drevo-android (decision 18): bump `db.lock` to the new drevo-db release, build, upload. The build and upload are
+automated, so a monthly database release is one `db.lock` PR; Xcode Cloud or fastlane in CI is chosen when the
+membership exists.
+
+Before the first upload:
+
+- [ ] App icon: a 1024×1024 image without transparency in `AppIcon.appiconset`, which is empty. drevo-android's largest
+      is 221 px (`drevo/src/main/res/drawable/drevo.png`), too small to scale up.
+- [ ] `PrivacyInfo.xcprivacy`: the `UserDefaults` required-reason API (`CA92.1`), no tracking, no data collected.
+- [ ] `ITSAppUsesNonExemptEncryption = NO`, so no build asks the export compliance question; the app makes no network
+      requests.
+- [ ] Signing: `DEVELOPMENT_TEAM`, the `ru.drevoinfo` App ID; `MARKETING_VERSION` 1.0 and a build number rule.
+- [ ] App Store Connect: privacy policy and support URLs, iPhone 6.9″ and iPad 13″ screenshots, description, keywords,
+      category, age rating, App Privacy "Data Not Collected".
 
 ## Risks and prerequisites
 
