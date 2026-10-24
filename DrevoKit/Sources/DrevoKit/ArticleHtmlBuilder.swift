@@ -70,6 +70,18 @@ public struct ArticleHtmlBuilder {
         "document.documentElement.style.zoom = '\(zoom)';"
     }
 
+    /// The script that shows the chosen Bible translations, hides the other and relabels `common.js`'s toggle links;
+    /// it sets the state rather than toggling it, so it holds however often it runs.
+    public static func bibleScript(_ translations: SettingsModel.BibleTranslations) -> String {
+        let shown =
+            switch translations {
+            case .both: #"$(".BibleRus, .BibleCsl").show();"#
+            case .russian: #"$(".BibleRus").show(); $(".BibleCsl").hide();"#
+            case .churchSlavonic: #"$(".BibleCsl").show(); $(".BibleRus").hide();"#
+            }
+        return shown + " checkBibleLinks();"
+    }
+
     /// An anchor may come from a restored history or an imported bookmark, so it must not end the string or the
     /// script it lands in.
     private static func jsStringContent(_ value: String) -> String {

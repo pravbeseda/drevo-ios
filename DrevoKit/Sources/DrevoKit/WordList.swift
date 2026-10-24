@@ -6,7 +6,8 @@ public enum Topic: Int, CaseIterable, Codable, Sendable {
     case all = 99
 }
 
-/// The user's word list preferences: drevo-android's `slovnikMode`, `searchType` and `slovnikPortion`.
+/// The user's word list preferences: drevo-android's `slovnikMode` and `searchType`; its `slovnikPortion` is not ported,
+/// as the list always shows every match.
 public struct ListSettings: Equatable, Codable, Sendable {
     /// Service articles are those in topic 13 and up, which topic 99 leaves out.
     public enum ServiceArticles: String, Codable, Sendable {
@@ -19,15 +20,10 @@ public struct ListSettings: Equatable, Codable, Sendable {
 
     public var serviceArticles: ServiceArticles
     public var searchMatch: SearchMatch
-    /// The most rows to show; `nil` shows every match.
-    public var limit: Int?
 
-    public init(
-        serviceArticles: ServiceArticles = .whileSearching, searchMatch: SearchMatch = .anywhere, limit: Int? = nil
-    ) {
+    public init(serviceArticles: ServiceArticles = .whileSearching, searchMatch: SearchMatch = .anywhere) {
         self.serviceArticles = serviceArticles
         self.searchMatch = searchMatch
-        self.limit = limit
     }
 }
 
@@ -78,9 +74,6 @@ enum SlovnikQueryBuilder {
         }
         // The main page leads the list; format.md leaves that to the client.
         sql += " ORDER BY _id <> 4, title"
-        if let limit = query.settings.limit {
-            sql += " LIMIT \(limit)"
-        }
         return (sql, pattern)
     }
 }

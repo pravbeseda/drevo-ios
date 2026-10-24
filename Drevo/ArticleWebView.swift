@@ -10,6 +10,7 @@ struct ArticleWebView: UIViewRepresentable {
     let pageID: Int
     let jump: AnchorJump?
     let zoom: Double
+    let bibleTranslations: SettingsModel.BibleTranslations
 
     func makeCoordinator() -> Coordinator {
         Coordinator(model: model)
@@ -32,14 +33,23 @@ struct ArticleWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         let coordinator = context.coordinator
         coordinator.openURL = context.environment.openURL
-        if coordinator.zoom != zoom {
-            coordinator.zoom = zoom
-            // Every page to come gets it before its load script restores the scroll; the page shown, at once.
-            let script = ArticleHtmlBuilder.zoomScript(zoom)
+        let zoomScript = ArticleHtmlBuilder.zoomScript(zoom)
+        let bibleScript = ArticleHtmlBuilder.bibleScript(bibleTranslations)
+        // The page shown runs only the script whose setting changed, so a font size change keeps the reader's own
+        // Bible toggles.
+        var changed: [String] = []
+        if coordinator.zoomScript != zoomScript { changed.append(zoomScript) }
+        if coordinator.bibleScript != bibleScript { changed.append(bibleScript) }
+        if !changed.isEmpty {
+            coordinator.zoomScript = zoomScript
+            coordinator.bibleScript = bibleScript
+            // Every page to come gets both before its load script restores the scroll.
             let scripts = webView.configuration.userContentController
             scripts.removeAllUserScripts()
-            scripts.addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-            webView.evaluateJavaScript(script)
+            scripts.addUserScript(
+                WKUserScript(
+                    source: zoomScript + " " + bibleScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+            webView.evaluateJavaScript(changed.joined(separator: " "))
         }
         if coordinator.requestedPageID != pageID, let page = model.resumedPage() {
             coordinator.requestedPageID = pageID
@@ -57,7 +67,8 @@ struct ArticleWebView: UIViewRepresentable {
         var requestedPageID: Int?
         var pendingLoad: WKNavigation?
         var lastJump: AnchorJump?
-        var zoom: Double?
+        var zoomScript: String?
+        var bibleScript: String?
         /// The page whose document is in the web view: the previous one keeps reporting scrolls until the next one
         /// commits, and those reports must not count for the next.
         private var committedPageID: Int?

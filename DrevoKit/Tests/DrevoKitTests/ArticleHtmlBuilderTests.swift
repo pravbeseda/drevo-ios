@@ -86,6 +86,16 @@ struct ArticleHtmlBuilderTests {
         #expect(ArticleHtmlBuilder.zoomScript(1) == "document.documentElement.style.zoom = '1.0';")
     }
 
+    @Test func theBibleScriptShowsTheChosenTranslationsAndRelabelsTheToggles() {
+        #expect(ArticleHtmlBuilder.bibleScript(.both) == #"$(".BibleRus, .BibleCsl").show(); checkBibleLinks();"#)
+        #expect(
+            ArticleHtmlBuilder.bibleScript(.russian)
+                == #"$(".BibleRus").show(); $(".BibleCsl").hide(); checkBibleLinks();"#)
+        #expect(
+            ArticleHtmlBuilder.bibleScript(.churchSlavonic)
+                == #"$(".BibleCsl").show(); $(".BibleRus").hide(); checkBibleLinks();"#)
+    }
+
     @Test func calendarMovesItsYearIntoTheTitle() {
         let page = build(title: "КАЛЕНДАРЬ", body: #"<div class="year">2026</div><table></table>"#)
         #expect(page.title == "КАЛЕНДАРЬ 2026")

@@ -29,10 +29,11 @@ struct WordListModelTests {
 
     @Test func followsTheListSettings() async {
         let model = WordListModel(library: library, settings: settings)
-        settings.list.limit = 2
-        #expect(model.query.settings.limit == 2)
+        model.search = "радонеж"
+        settings.list.searchMatch = .prefix
+        #expect(model.query.settings.searchMatch == .prefix)
         await model.load()
-        #expect(model.entries.count == 2)
+        #expect(model.entries.isEmpty)
     }
 
     @Test func reloadsAfterABookmarkChangeOnlyInBookmarksMode() async throws {

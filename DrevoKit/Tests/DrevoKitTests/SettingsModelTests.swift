@@ -12,6 +12,7 @@ struct SettingsModelTests {
         #expect(settings.theme == .system)
         #expect(settings.fontScale == 1)
         #expect(settings.list == ListSettings())
+        #expect(settings.bibleTranslations == .both)
     }
 
     @Test func changesSurviveANewModel() {
@@ -19,12 +20,25 @@ struct SettingsModelTests {
         settings.theme = .dark
         settings.fontScale = 1.25
         settings.list.searchMatch = .prefix
-        settings.list.limit = 500
+        settings.bibleTranslations = .churchSlavonic
 
         let reloaded = SettingsModel(defaults: defaults)
         #expect(reloaded.theme == .dark)
         #expect(reloaded.fontScale == 1.25)
-        #expect(reloaded.list == ListSettings(searchMatch: .prefix, limit: 500))
+        #expect(reloaded.list == ListSettings(searchMatch: .prefix))
+        #expect(reloaded.bibleTranslations == .churchSlavonic)
+    }
+
+    @Test func settingsStoredBeforeTheBibleSettingKeepTheirValues() {
+        defaults.set(
+            Data(
+                #"{"theme":"dark","fontScale":1.5,"list":{"serviceArticles":"never","searchMatch":"prefix","limit":500}}"#
+                    .utf8),
+            forKey: SettingsModel.key)
+        let settings = SettingsModel(defaults: defaults)
+        #expect(settings.theme == .dark)
+        #expect(settings.list == ListSettings(serviceArticles: .never, searchMatch: .prefix))
+        #expect(settings.bibleTranslations == .both)
     }
 
     @Test func fontScaleStaysInItsRange() {

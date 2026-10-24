@@ -9,6 +9,11 @@ public final class SettingsModel {
         case system, light, dark
     }
 
+    /// Which translations a Bible passage shows: drevo-android's `bibleTranslate`.
+    public enum BibleTranslations: String, Codable, Sendable {
+        case both, russian, churchSlavonic
+    }
+
     /// The article text size relative to the system's Dynamic Type size.
     public static let fontScales: ClosedRange<Double> = 0.75...2
 
@@ -18,6 +23,19 @@ public final class SettingsModel {
         var theme = Theme.system
         var fontScale = 1.0
         var list = ListSettings()
+        var bibleTranslations = BibleTranslations.both
+
+        init() {}
+
+        /// A key a newer version added is missing from older settings, which keep their other values.
+        init(from decoder: any Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            theme = try container.decode(Theme.self, forKey: .theme)
+            fontScale = try container.decode(Double.self, forKey: .fontScale)
+            list = try container.decode(ListSettings.self, forKey: .list)
+            bibleTranslations =
+                try container.decodeIfPresent(BibleTranslations.self, forKey: .bibleTranslations) ?? .both
+        }
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -50,5 +68,10 @@ public final class SettingsModel {
     public var list: ListSettings {
         get { stored.list }
         set { stored.list = newValue }
+    }
+
+    public var bibleTranslations: BibleTranslations {
+        get { stored.bibleTranslations }
+        set { stored.bibleTranslations = newValue }
     }
 }
