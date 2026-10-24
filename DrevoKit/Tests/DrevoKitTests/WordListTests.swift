@@ -54,10 +54,6 @@ struct WordListTests {
         #expect(try ids(search: search).isEmpty)
     }
 
-    @Test func limitCapsTheList() throws {
-        #expect(try ids(settings: ListSettings(limit: 2)) == [4, 101])
-    }
-
     @Test func bookmarksAreReadFromTheBookmarksDatabase() throws {
         let store = try BookmarksStore(at: scratchURL())
         try store.add(id: 102, title: "СЕРГИЙ РАДОНЕЖСКИЙ")

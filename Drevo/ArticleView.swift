@@ -49,7 +49,7 @@ struct ArticleView: View {
         } else if model.page != nil {
             ArticleWebView(
                 model: model, pageID: model.pageID, jump: jump,
-                zoom: settings.textZoom(systemTextScale: systemTextScale)
+                zoom: settings.textZoom(systemTextScale: systemTextScale), bibleTranslations: settings.bibleTranslations
             )
             .ignoresSafeArea(edges: .bottom)
         }

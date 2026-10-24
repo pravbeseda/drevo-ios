@@ -165,6 +165,36 @@ final class ReaderTests: XCTestCase {
         XCTAssertTrue(release.waitForNonExistence(timeout: timeout))
     }
 
+    /// `common.js` relabels a Bible passage's toggle links by what the page shows.
+    private func cslToggle(_ verb: String) -> XCUIElement {
+        app.webViews.links.matching(NSPredicate(format: "label MATCHES %@", "\(verb) +церковнославянский перевод"))
+            .firstMatch
+    }
+
+    private func pickBibleTranslations(_ option: String) {
+        openMenu()
+        app.buttons["Настройки"].tap()
+        let picker = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Переводы Библии")).firstMatch
+        XCTAssertTrue(picker.waitForExistence(timeout: timeout))
+        picker.tap()
+        app.buttons[option].tap()
+        app.buttons["Готово"].tap()
+        XCTAssertTrue(app.navigationBars["Настройки"].waitForNonExistence(timeout: timeout))
+    }
+
+    /// Picks the setting before searching: going back to the list would refocus the search field, which hides the
+    /// menu, so only a regular width, whose menu sits over the article, changes it again with the article open.
+    func testTheBibleSettingHidesTheChurchSlavonicTranslation() {
+        launch()
+        pickBibleTranslations("Только русский")
+        open("МФ 1", searching: "мф 1")
+        XCTAssertTrue(cslToggle("Показать").waitForExistence(timeout: timeout))
+
+        guard isRegularWidth else { return }
+        pickBibleTranslations("Русский и церковнославянский")
+        XCTAssertTrue(cslToggle("Скрыть").waitForExistence(timeout: timeout))
+    }
+
     func testSettingsOpenAndClose() {
         launch()
         openMenu()

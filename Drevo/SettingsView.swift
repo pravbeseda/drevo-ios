@@ -31,6 +31,13 @@ struct SettingsView: View {
                 } footer: {
                     Text("Относительно размера текста в настройках системы.")
                 }
+                Section {
+                    Picker("Переводы Библии", selection: $settings.bibleTranslations) {
+                        Text("Русский и церковнославянский").tag(SettingsModel.BibleTranslations.both)
+                        Text("Только русский").tag(SettingsModel.BibleTranslations.russian)
+                        Text("Только церковнославянский").tag(SettingsModel.BibleTranslations.churchSlavonic)
+                    }
+                }
                 Section("Словник") {
                     Picker("Служебные статьи", selection: $settings.list.serviceArticles) {
                         Text("Всегда").tag(ListSettings.ServiceArticles.always)
@@ -40,12 +47,6 @@ struct SettingsView: View {
                     Picker("Поиск", selection: $settings.list.searchMatch) {
                         Text("По началу названия").tag(ListSettings.SearchMatch.prefix)
                         Text("По вхождению").tag(ListSettings.SearchMatch.anywhere)
-                    }
-                    Picker("Ограничение результатов", selection: $settings.list.limit) {
-                        Text("Не ограничивать").tag(Int?.none)
-                        ForEach([100, 500, 1000], id: \.self) { limit in
-                            Text("\(limit) статей").tag(Int?.some(limit))
-                        }
                     }
                 }
                 Section {

@@ -212,7 +212,7 @@ One pull request per step, each green before the next.
 | `ArticleAssembler` | `ArticleAssembler` | inflate through `Compression`: `COMPRESSION_ZLIB` is raw deflate, so the 2-byte zlib header is skipped and the Adler-32 trailer checked by hand; then patch; throws `CorruptArticle` |
 | `ArticleReader` | `ArticleReader`, `RowLookup` | reads the `patch` row, then `main` unless `isfulltext = 1` |
 | `Article` | `Article`, `TocEntry` | splits TOC and body at `<drevo>`; the TOC is an ordered list, since titles repeat in ~20 articles (`ArticleTest`) |
-| `WordListQuery`, `SlovnikQueryBuilder` | same names | topics `0` / `99` / `1`–`11`, search type, portion as `LIMIT` |
+| `WordListQuery`, `SlovnikQueryBuilder` | same names | topics `0` / `99` / `1`–`11`, search type; no portion, the list shows every match |
 | `SearchHighlighter` | same | |
 | `ArticleHtmlBuilder` | same | emits `webkit.messageHandlers.drevo.postMessage(...)` instead of `Android.onLoad()` / `Android.onScroll()` |
 | `ArticleHistory` | `HistoryList` | back / forward stacks with each page's scroll |
@@ -235,7 +235,8 @@ MVP:
 4. Bookmarks: add, remove, list.
 5. "⋯" menu entries: main page, calendar (with today highlighted), today, tomorrow, chronology, settings, about the site,
    about the app.
-6. Settings: theme (system / light / dark, decision 16), font size on top of Dynamic Type, word-list mode and portion.
+6. Settings: theme (system / light / dark, decision 16), font size on top of Dynamic Type, word-list mode. drevo-android's portion
+   (`slovnikPortion`) is dropped: the list always shows every match.
 
 Later:
 
@@ -244,7 +245,11 @@ Later:
       written by `VACUUM INTO`. Deviation: an import adds the file's bookmarks to the user's, skipping one already
       there by id or title, where drevo-android replaces them after a confirmation; nothing is lost to a wrong file, so
       no confirmation is asked. drevo-android's "clear bookmarks" is not ported.
-- Bible translation setting (`bibleTranslate`), "rate the app" and "send feedback" links.
+- [x] Bible translation setting (`bibleTranslate`) in the settings screen: both translations, Russian only or Church
+      Slavonic only. Deviation: the page sets the chosen state through `ArticleHtmlBuilder.bibleScript` rather than
+      calling `common.js`'s toggles, so the setting applies to the article already open, as the font size does.
+- "Rate the app" link: waits for the App Store record, as its link needs the app's id.
+- "Send feedback" link: deferred.
 
 Not ported: OBB download and licensing (the bundle holds the data), billing (dormant on Android), `volumeKeys`
 (iOS has no public API for the volume buttons), `quitAlert` (no back-to-exit on iOS), `widthPortrait` / `widthAlbum`

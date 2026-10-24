@@ -10,6 +10,7 @@ struct ArticleWebView: UIViewRepresentable {
     let pageID: Int
     let jump: AnchorJump?
     let zoom: Double
+    let bibleTranslations: SettingsModel.BibleTranslations
 
     func makeCoordinator() -> Coordinator {
         Coordinator(model: model)
@@ -32,10 +33,10 @@ struct ArticleWebView: UIViewRepresentable {
     func updateUIView(_ webView: WKWebView, context: Context) {
         let coordinator = context.coordinator
         coordinator.openURL = context.environment.openURL
-        if coordinator.zoom != zoom {
-            coordinator.zoom = zoom
+        let script = ArticleHtmlBuilder.zoomScript(zoom) + " " + ArticleHtmlBuilder.bibleScript(bibleTranslations)
+        if coordinator.settingsScript != script {
+            coordinator.settingsScript = script
             // Every page to come gets it before its load script restores the scroll; the page shown, at once.
-            let script = ArticleHtmlBuilder.zoomScript(zoom)
             let scripts = webView.configuration.userContentController
             scripts.removeAllUserScripts()
             scripts.addUserScript(WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
@@ -57,7 +58,7 @@ struct ArticleWebView: UIViewRepresentable {
         var requestedPageID: Int?
         var pendingLoad: WKNavigation?
         var lastJump: AnchorJump?
-        var zoom: Double?
+        var settingsScript: String?
         /// The page whose document is in the web view: the previous one keeps reporting scrolls until the next one
         /// commits, and those reports must not count for the next.
         private var committedPageID: Int?
