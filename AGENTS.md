@@ -22,7 +22,7 @@ written into the repository is English.
 - `Drevo/Resources/Web/` — the article page's stylesheets and scripts, copied from drevo-android's
   `drevo/src/main/assets/`. The build copies every resource flat into the bundle root, which is the page's base URL.
 - `design/` — source artwork, kept out of `Drevo/` so it is not bundled. `swift scripts/render-app-icon.swift`, run
-  from the repository root, renders `design/app-icon.svg` into `AppIcon.appiconset`.
+  from the repository root, renders `design/app-icon.svg` into the app icon and the launch screen's logo.
 - `Drevo.xcodeproj` uses folder-synchronized groups: a file added under `Drevo/` or `DrevoUITests/` is in its target
   with no project edit. `project.pbxproj` changes only for build settings, phases and targets.
 
