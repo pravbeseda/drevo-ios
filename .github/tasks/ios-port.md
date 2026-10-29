@@ -269,8 +269,8 @@ Before the first upload:
 - [x] App icon: a 1024×1024 image without transparency in `AppIcon.appiconset`, rendered from the vector logo
       `design/app-icon.svg` by `scripts/render-app-icon.swift`. Light appearance only; dark and tinted variants or an
       Icon Composer file can come later from the same source.
-- [ ] `PrivacyInfo.xcprivacy`: the `UserDefaults` required-reason API (`CA92.1`), no tracking, no data collected.
-- [ ] `ITSAppUsesNonExemptEncryption = NO`, so no build asks the export compliance question; the app makes no network
+- [x] `PrivacyInfo.xcprivacy`: the `UserDefaults` required-reason API (`CA92.1`), no tracking, no data collected.
+- [x] `ITSAppUsesNonExemptEncryption = NO`, so no build asks the export compliance question; the app makes no network
       requests.
 - [ ] Signing: `DEVELOPMENT_TEAM`, the `ru.drevoinfo` App ID; `MARKETING_VERSION` 1.0 and a build number rule.
 - [ ] App Store Connect: privacy policy and support URLs, iPhone 6.9″ and iPad 13″ screenshots, description, keywords,
