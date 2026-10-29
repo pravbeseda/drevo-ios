@@ -266,8 +266,9 @@ membership exists.
 
 Before the first upload:
 
-- [ ] App icon: a 1024×1024 image without transparency in `AppIcon.appiconset`, which is empty. drevo-android's largest
-      is 221 px (`drevo/src/main/res/drawable/drevo.png`), too small to scale up.
+- [x] App icon: a 1024×1024 image without transparency in `AppIcon.appiconset`, rendered from the vector logo
+      `design/app-icon.svg` by `scripts/render-app-icon.swift`. Light appearance only; dark and tinted variants or an
+      Icon Composer file can come later from the same source.
 - [ ] `PrivacyInfo.xcprivacy`: the `UserDefaults` required-reason API (`CA92.1`), no tracking, no data collected.
 - [ ] `ITSAppUsesNonExemptEncryption = NO`, so no build asks the export compliance question; the app makes no network
       requests.
